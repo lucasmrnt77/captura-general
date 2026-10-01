@@ -1,0 +1,598 @@
+var SHEET_ID = "1lSEHGH9xs4m4EjSSTIQbcH2d4spPl4mdakXsWbCcdiE";
+var SHEET_NAME = "Hoja 1";
+
+var GROUP_SHEET_NAME = "Leads Grupo";
+var CHECKPOINT_SHEET_NAME = "Ultimo Chequeo";
+var OUTPUT_SHEET_NAME = "Hoja 4";
+var UNICHAT_WEBHOOK_URL =
+  "https://unnichat.com.br/a/WMElAn7BeiiZvDrpn1Ec";
+var UNICHAT_API_KEY =
+  PropertiesService.getScriptProperties().getProperty("UNICHAT_API_KEY");
+var CHECK_INTERVAL_MS = 10 * 60 * 1000;
+var CHECK_COLUMN = 17; // Columna Q
+
+
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+function doGet(e) {
+  return jsonResponse({
+    status: "active",
+    message: "Google Apps Script funcionando correctamente",
+    timestamp: new Date()
+  });
+}
+
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    Logger.log("Datos recibidos: " + JSON.stringify(data));
+
+    var spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+    if (!sheet) {
+      Logger.log("Hoja no encontrada, creando nueva...");
+      sheet = spreadsheet.insertSheet(SHEET_NAME);
+
+      sheet.appendRow([
+        "Fecha",
+        "Hora",
+        "Telefono",
+        "Pais",
+        "Edad",
+        "Genero",
+        "Respuesta_dinero",
+        "Pagina_captura",
+        "Campana",
+        "Anuncio",
+        "Utm_source",
+        "Utm_medium",
+        "Utm_term",
+        "Landing",
+        "Video",
+        "Pag.Gracias",
+        "Chequeo grupo"
+      ]);
+    }
+
+    /*
+     * Mantiene el funcionamiento actual:
+     * el lead se guarda inmediatamente en la próxima fila libre.
+     * La columna Q se guarda vacía.
+     */
+    if (!data.action || data.action === "register") {
+      sheet.appendRow([
+        data.fecha || "",
+        data.hora || "",
+        data.telefono || "",
+        data.pais || "",
+        "",
+        "",
+        "",
+        data.pagina_captura || "",
+        data.campana || "",
+        data.anuncio || "",
+        data.utm_source || "",
+        data.utm_medium || "",
+        data.utm_term || "",
+        data.landing || "pagina_1",
+        data.video || "uLfDLfgTpZ8",
+        data.pag_gracias || "gracias-video",
+        ""
+      ]);
+
+      Logger.log("Registro guardado exitosamente");
+
+      /*
+       * El chequeo se intenta después de guardar.
+       * Si ya se hizo un chequeo hace menos de 10 minutos,
+       * solamente se guarda el lead y no se inicia otro chequeo.
+       */
+      intentarIniciarChequeo(spreadsheet, sheet);
+
+      return jsonResponse({
+        success: true,
+        message: "Guardado OK en Hoja 1"
+      });
+    }
+
+    /*
+     * Permite actualizar la encuesta desde el mismo Web App.
+     */
+    if (
+      data.action === "update" ||
+      data.action === "update_response"
+    ) {
+      return actualizarRespuesta(spreadsheet, data);
+    }
+
+    return jsonResponse({
+      success: false,
+      error: "Acción no reconocida"
+    });
+
+  } catch (error) {
+    Logger.log("Error: " + error.toString());
+
+    return jsonResponse({
+      success: false,
+      error: error.toString()
+    });
+  }
+}
+
+
+function actualizarRespuesta(spreadsheet, data) {
+  var sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    return jsonResponse({
+      success: false,
+      error: "Hoja no encontrada"
+    });
+  }
+
+  var values = sheet.getDataRange().getValues();
+  var telefonoBuscado = normalizarTelefono(data.telefono);
+
+  /*
+   * Busca desde abajo hacia arriba para actualizar
+   * el registro más reciente de ese teléfono.
+   */
+  for (var i = values.length - 1; i >= 1; i--) {
+    var telefonoFila = normalizarTelefono(values[i][2]);
+
+    if (telefonoFila === telefonoBuscado) {
+      sheet.getRange(i + 1, 5).setValue(data.edad || "");
+      sheet.getRange(i + 1, 6).setValue(data.genero || "");
+      sheet.getRange(i + 1, 7).setValue(data.respuesta || "");
+
+      Logger.log("Fila actualizada: " + (i + 1));
+
+      return jsonResponse({
+        success: true,
+        message: "Actualizado OK"
+      });
+    }
+  }
+
+  return jsonResponse({
+    success: false,
+    error: "Teléfono no encontrado"
+  });
+}
+
+
+function intentarIniciarChequeo(spreadsheet, mainSheet) {
+  var checkpointSheet = spreadsheet.getSheetByName(
+    CHECKPOINT_SHEET_NAME
+  );
+
+  if (!checkpointSheet) {
+    Logger.log("No existe la hoja Ultimo Chequeo");
+    return;
+  }
+
+  var ahora = new Date();
+  var ultimoChequeo = checkpointSheet.getRange("A2").getValue();
+
+  /*
+   * Si el último chequeo fue hace menos de 10 minutos,
+   * no se inicia otro.
+   */
+  if (
+    ultimoChequeo &&
+    ahora.getTime() - new Date(ultimoChequeo).getTime() <
+      CHECK_INTERVAL_MS
+  ) {
+    return;
+  }
+
+  /*
+   * Bloqueo mínimo únicamente para reservar el ciclo.
+   * El guardado del lead ya ocurrió antes.
+   */
+  var lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(100)) {
+    Logger.log("Otro proceso está reservando un chequeo");
+    return;
+  }
+
+  try {
+    /*
+     * Se vuelve a leer A2 dentro del bloqueo.
+     * Esto evita que dos procesos inicien el mismo chequeo.
+     */
+    var ultimoChequeoConfirmado =
+      checkpointSheet.getRange("A2").getValue();
+
+    var fechaReserva = new Date();
+
+    if (
+      ultimoChequeoConfirmado &&
+      fechaReserva.getTime() -
+        new Date(ultimoChequeoConfirmado).getTime() <
+        CHECK_INTERVAL_MS
+    ) {
+      return;
+    }
+
+    /*
+     * A2 se actualiza antes de comenzar el chequeo.
+     */
+    checkpointSheet.getRange("A2").setValue(fechaReserva);
+    SpreadsheetApp.flush();
+
+  } finally {
+    lock.releaseLock();
+  }
+
+  /*
+   * El recorrido se ejecuta fuera del bloqueo.
+   * El timestamp de A2 ya reservó este ciclo.
+   */
+  ejecutarChequeo(spreadsheet, mainSheet, checkpointSheet);
+}
+
+
+function ejecutarChequeo(
+  spreadsheet,
+  mainSheet,
+  checkpointSheet
+) {
+  var groupSheet = spreadsheet.getSheetByName(
+    GROUP_SHEET_NAME
+  );
+
+  var outputSheet = spreadsheet.getSheetByName(
+    OUTPUT_SHEET_NAME
+  );
+
+  if (!groupSheet || !outputSheet) {
+    Logger.log("Falta Leads Grupo o Hoja 4");
+    return;
+  }
+
+  /*
+   * B2 indica la última fila que ya fue chequeada.
+   * Si está vacío, empieza desde la fila 1.
+   */
+  var ultimaFilaChequeada = Math.max(
+    1,
+    Number(checkpointSheet.getRange("B2").getValue()) || 1
+  );
+
+  var ultimaFilaLead = mainSheet.getLastRow();
+
+  if (ultimaFilaLead <= ultimaFilaChequeada) {
+    return;
+  }
+
+  /*
+   * Solo se procesan registros que tengan más de 10 minutos.
+   */
+  var limite = new Date(
+    Date.now() - CHECK_INTERVAL_MS
+  );
+
+  var ultimaFilaElegible = ultimaFilaLead;
+
+  /*
+   * Como los leads entran ordenados, se recorren desde abajo
+   * hasta encontrar el último registro con más de 10 minutos.
+   */
+  while (
+    ultimaFilaElegible > ultimaFilaChequeada &&
+    obtenerFechaLead(
+      mainSheet,
+      ultimaFilaElegible
+    ) > limite
+  ) {
+    ultimaFilaElegible--;
+  }
+
+  if (ultimaFilaElegible <= ultimaFilaChequeada) {
+    return;
+  }
+
+  /*
+   * Lee los teléfonos de Leads Grupo, columna C.
+   */
+  var ultimaFilaGrupo = groupSheet.getLastRow();
+
+  var telefonosGrupo = [];
+
+  if (ultimaFilaGrupo >= 2) {
+    telefonosGrupo = groupSheet
+      .getRange(2, 3, ultimaFilaGrupo - 1, 1)
+      .getValues()
+      .flat();
+  }
+
+  var grupoSet = new Set(
+    telefonosGrupo
+      .map(normalizarTelefono)
+      .filter(Boolean)
+  );
+
+  /*
+   * Lee los leads desde la fila siguiente a B2
+   * hasta la última fila elegible.
+   */
+  var cantidadFilas =
+    ultimaFilaElegible - ultimaFilaChequeada;
+
+  var filasLeads = mainSheet
+    .getRange(
+      ultimaFilaChequeada + 1,
+      1,
+      cantidadFilas,
+      CHECK_COLUMN
+    )
+    .getValues();
+
+  /*
+   * Lee los teléfonos ya agregados a Hoja 4
+   * para no duplicarlos.
+   */
+  var ultimaFilaSalida = outputSheet.getLastRow();
+  var telefonosSalida = [];
+
+  if (ultimaFilaSalida >= 1) {
+    telefonosSalida = outputSheet
+      .getRange(1, 1, ultimaFilaSalida, 1)
+      .getValues()
+      .flat();
+  }
+
+  var salidaSet = new Set(
+    telefonosSalida
+      .map(normalizarTelefono)
+      .filter(Boolean)
+  );
+
+  var telefonosNoEncontrados = [];
+
+  filasLeads.forEach(function(fila, indice) {
+    var telefono = normalizarTelefono(fila[2]);
+    var estadoChequeo = String(fila[16] || "").trim();
+
+    if (!telefono || estadoChequeo === "OK") {
+      return;
+    }
+
+    var numeroFilaReal =
+      ultimaFilaChequeada + 1 + indice;
+
+    /*
+     * Si no está en Leads Grupo, se agrega a Hoja 4.
+     */
+    if (
+      !grupoSet.has(telefono) &&
+      !salidaSet.has(telefono)
+    ) {
+      telefonosNoEncontrados.push([telefono]);
+      salidaSet.add(telefono);
+    }
+
+    /*
+     * Q = columna 17.
+     * Se marca OK únicamente durante el chequeo.
+     */
+    mainSheet
+      .getRange(numeroFilaReal, CHECK_COLUMN)
+      .setValue("OK");
+  });
+
+  /*
+   * Agrega los teléfonos faltantes en la próxima fila libre
+   * de la columna A de Hoja 4. y los envia a unnichat 
+   */
+  if (telefonosNoEncontrados.length > 0) {
+  outputSheet
+    .getRange(
+      outputSheet.getLastRow() + 1,
+      1,
+      telefonosNoEncontrados.length,
+      1
+    )
+    .setValues(telefonosNoEncontrados);
+
+  enviarTelefonosAUnichat(telefonosNoEncontrados);
+  }
+
+  /*
+   * B2 = última fila chequeada.
+   */
+  checkpointSheet
+    .getRange("B2")
+    .setValue(ultimaFilaElegible);
+
+  Logger.log(
+    "Chequeo finalizado hasta la fila " +
+      ultimaFilaElegible
+  );
+}
+function enviarTelefonosAUnichat(telefonos) {
+  telefonos.forEach(function(fila) {
+    var telefono = normalizarTelefono(fila[0]).replace(/[^0-9]/g, "");
+
+    if (!telefono) {
+      Logger.log("Unichat omitido: teléfono vacío");
+      return;
+    }
+
+    if (!UNICHAT_API_KEY) {
+      Logger.log("Unichat detenido: falta la propiedad de script UNICHAT_API_KEY");
+      return;
+    }
+
+    var payload = JSON.stringify({
+      apiKey: UNICHAT_API_KEY,
+      data: {
+        user: {
+          phoneNumber: telefono,
+          name: "Lead General",
+          email: ""
+        }
+      }
+    });
+
+    for (var intento = 1; intento <= 3; intento++) {
+      try {
+        var respuesta = UrlFetchApp.fetch(UNICHAT_WEBHOOK_URL, {
+          method: "post",
+          contentType: "application/json",
+          muteHttpExceptions: true,
+          payload: payload
+        });
+
+        var codigo = respuesta.getResponseCode();
+        var texto = respuesta.getContentText();
+        var resultado = null;
+
+        try {
+          resultado = JSON.parse(texto);
+        } catch (errorParseo) {
+          resultado = null;
+        }
+
+        Logger.log(
+          "Unichat intento " + intento +
+          " - teléfono: " + telefono +
+          " - HTTP: " + codigo +
+          " - respuesta: " + texto.substring(0, 500)
+        );
+
+        if (
+          codigo >= 200 &&
+          codigo < 300 &&
+          resultado &&
+          (resultado.response === true || resultado.success === true || (resultado.response && resultado.response.response === true))
+        ) {
+          break;
+        }
+      } catch (error) {
+        Logger.log(
+          "Error Unichat intento " + intento +
+          " - teléfono: " + telefono +
+          " - " + error.toString()
+        );
+      }
+
+      Utilities.sleep(1000 * intento);
+    }
+  });
+}
+
+function obtenerFechaLead(sheet, fila) {
+  var valorFecha = sheet
+    .getRange(fila, 1)
+    .getValue();
+
+  var valorHora = sheet
+    .getRange(fila, 2)
+    .getValue();
+
+  var fecha;
+
+  if (valorFecha instanceof Date) {
+    fecha = new Date(valorFecha);
+  } else {
+    var partesFecha = String(valorFecha)
+      .trim()
+      .split(/[\/\-]/);
+
+    if (partesFecha.length === 3) {
+      fecha = new Date(
+        Number(partesFecha[2]),
+        Number(partesFecha[1]) - 1,
+        Number(partesFecha[0])
+      );
+    } else {
+      fecha = new Date(valorFecha);
+    }
+  }
+
+  if (valorHora instanceof Date) {
+    fecha.setHours(
+      valorHora.getHours(),
+      valorHora.getMinutes(),
+      valorHora.getSeconds(),
+      0
+    );
+  } else {
+    var partesHora = String(valorHora)
+      .trim()
+      .split(":");
+
+    fecha.setHours(
+      Number(partesHora[0]) || 0,
+      Number(partesHora[1]) || 0,
+      Number(partesHora[2]) || 0,
+      0
+    );
+  }
+
+  return fecha;
+}
+
+
+function normalizarTelefono(valor) {
+  return String(valor || "")
+    .replace(/[^0-9+]/g, "")
+    .trim();
+}
+
+
+function testPost() {
+  var evento = {
+    postData: {
+      contents: JSON.stringify({
+        action: "register",
+        telefono: "5551234567",
+        fecha: "09/07/2026",
+        hora: "14:30",
+        pais: "AR",
+        pagina_captura: "landing_test",
+        campana: "test",
+        anuncio: "test",
+        utm_source: "test",
+        utm_medium: "test",
+        utm_term: "test",
+        landing: "pagina_1",
+        video: "uLfDLfgTpZ8",
+        pag_gracias: "gracias-video"
+      })
+    }
+  };
+
+  var resultado = doPost(evento);
+  Logger.log(resultado.getContent());
+}
+
+
+function testUpdate() {
+  var evento = {
+    postData: {
+      contents: JSON.stringify({
+        action: "update",
+        telefono: "558888888888",
+        edad: "25 a 34 años",
+        genero: "Hombre",
+        respuesta: "Sí, podría hacerlo sin problema",
+        pais: "AR"
+      })
+    }
+  };
+
+  var resultado = doPost(evento);
+  Logger.log(resultado.getContent());
+}
