@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { updateLead } from '@/lib/db'
+import { enviarPerfilParaPainel } from '@/lib/painel'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,12 +20,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await updateLead(telefono, respuesta, {
-      age_range,
-      gender,
-      capital_amount,
-      video_id,
-    })
+    // Painel Sendflow em paralelo, independente das outras BDs
+    const [result] = await Promise.all([
+      updateLead(telefono, respuesta, {
+        age_range,
+        gender,
+        capital_amount,
+        video_id,
+      }),
+      enviarPerfilParaPainel({ telefono, age_range, gender, respuesta, capital_amount }),
+    ])
 
     return NextResponse.json({
       success: result.success,
