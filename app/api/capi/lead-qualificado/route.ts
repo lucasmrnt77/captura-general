@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     })
 
     if (!response.ok) {
-      console.error("[v0] Meta CAPI request failed", response.status)
+      console.error("[v0] Meta CAPI request failed", response.status, (await response.text().catch(() => "")).slice(0, 500))
       return NextResponse.json({ ok: false }, { status: 502 })
     }
 
