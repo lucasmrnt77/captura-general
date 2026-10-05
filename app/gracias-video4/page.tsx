@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { leadDaSessao } from "@/lib/lead-sessao"
-import { isArgentina } from "@/lib/country"
+import Script from "next/script"
+import { tde, comLimite, TRACKING_URL } from "@/lib/tracking"
 
 function GraciasVideoContent() {
   const searchParams = useSearchParams()
-  const [fbp, setFbp] = useState<string>("")
-  const [fbc, setFbc] = useState<string>("")
   const [phoneFromUrl, setPhoneFromUrl] = useState<string>("")
   const [country, setCountry] = useState<string>("")
   const emailFromUrl = searchParams.get("email") ?? searchParams.get("correo") ?? leadDaSessao().email
@@ -56,51 +55,18 @@ function GraciasVideoContent() {
     setPhoneFromUrl(tel)
     setCountry(countryParam)
 
-    // Cookies en paralelo sin bloquear
-    if (typeof document !== "undefined") {
-      const getCookie = (name: string) => {
-        const value = `; ${document.cookie}`
-        const parts = value.split(`; ${name}=`)
-        if (parts.length === 2) return parts.pop()?.split(";").shift() ?? ""
-        return ""
-      }
-
-      setFbp(getCookie("_fbp"))
-      setFbc(getCookie("_fbc"))
-    }
   }, [searchParams])
 
   useEffect(() => {
     if (generalPageviewSentRef.current) return
     generalPageviewSentRef.current = true
 
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`
-      const parts = value.split(`; ${name}=`)
-      return parts.length === 2 ? parts.pop()?.split(";").shift() ?? "" : ""
-    }
-
-    const eventId = crypto.randomUUID()
-    const fbp = getCookie("_fbp")
-    const fbc = getCookie("_fbc")
-
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: "Lead General PageView", event_id: eventId })
-
-    void fetch("/api/capi/lead-general", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event_id: eventId,
-        phone: searchParams.get("tel") ?? "",
-        email: emailFromUrl,
-        name: nameFromUrl,
-        fbc,
-        fbp,
-        event_source_url: window.location.href,
-      }),
-      keepalive: true,
-    }).catch(() => {})
+    // Lead General: o serviço de tracking envia à Meta e devolve o event_id do pixel
+    void tde("lead", { telefone: searchParams.get("tel") ?? "", email: emailFromUrl, pais: searchParams.get("country") ?? undefined }).then((res) => {
+      if (!res?.event_id) return
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: "Lead General PageView", event_id: res.event_id })
+    })
   }, [])
 
   const getResponseText = (value: string): string => {
@@ -110,32 +76,6 @@ function GraciasVideoContent() {
       si_puedo: "Sí, podría hacerlo sin problema",
     }
     return options[value] || value
-  }
-
-  const shouldSendEventToMeta = (
-    country: string,
-    capitalQuestion: string,
-    gender: string,
-    ageRange: string
-  ): boolean => {
-    // Uruguay: enviar TODOS los eventos
-    if (country.toUpperCase() === "UY") {
-      return true
-    }
-
-    // Argentina y otros países: aplicar filtros
-    // Caso 1: "Sí, podría hacerlo sin problema" → ENVIAR TODOS
-    if (capitalQuestion === "si_puedo") {
-      return true
-    }
-
-    // Caso 2: "No hoy, pero podría organizarme" → ENVIAR TODOS
-    if (capitalQuestion === "no_pero_podria") {
-      return true
-    }
-
-    // Caso 3: "No, hoy sería imposible" → NO ENVIAR
-    return false
   }
 
   const handleSubmitResponse = async () => {
@@ -194,92 +134,44 @@ function GraciasVideoContent() {
         console.log("[v0] Sheet update error:", err)
       })
 
-  const eventId = crypto.randomUUID()
-  const sendQualified = isArgentina(country, phoneFromUrl)
-      ? capitalQuestion === "si_puedo" ||
-        (capitalQuestion === "no_pero_podria" &&
-          gender === "hombre" &&
-          (ageRange === "35_44" || ageRange === "45_54" || ageRange === "55_64"))
-      : capitalQuestion === "si_puedo" || capitalQuestion === "no_pero_podria"
+    // Lead Qualificado: a regra fica no serviço de tracking (regras oficiais).
+    // Espera no máximo 2,5 s pela resposta para não atrasar a ida ao grupo.
+    const res = await comLimite(
+      tde("qualificar", {
+        telefone: phoneFromUrl || searchParams.get("tel") || "",
+        email: emailFromUrl,
+        pais: country || undefined,
+        idade: ageRange,
+        genero: gender,
+        resposta: capitalQuestion,
+      }),
+      2500,
+    )
 
-  console.log("[DEBUG calificacion]", {
-    country,
-    phoneFromUrl,
-    isAR: isArgentina(country, phoneFromUrl),
-    capitalQuestion,
-    gender,
-    ageRange,
-    sendQualified,
-  })
-
-  if (sendQualified) {
-    console.log("[DEBUG CAPI] arrancando fetch a CAPI", Date.now())
-    try {
-      await Promise.race([
-        fetch("/api/capi/lead-qualificado", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_id: eventId,
-          phone: phoneFromUrl,
-          email: emailFromUrl,
-          name: nameFromUrl,
-          fbp,
-          fbc,
-          country,
-          age_range: ageRange,
-          gender,
-          respuesta: capitalQuestion,
-          event_source_url: window.location.href,
-        }),
-          keepalive: true,
-        }),
-        new Promise((resolve) => setTimeout(resolve, 2500)),
-      ])
-      console.log("[DEBUG CAPI] terminó el await (fetch resolvió o venció el timeout)", Date.now())
-    } catch (error) {
-      console.error("[v0] Qualified CAPI error:", error)
+    // Mantém os avisos ao GTM com o MESMO event_id do serviço (sem contar em dobro na Meta)
+    if (res?.qualificado && res.event_id) {
+      const dados = {
+        event_id: res.event_id,
+        event_category: "conversion",
+        event_label: "respuesta_encuesta_trading",
+        landing_page: "trading_desde_cero",
+        country,
+        age_range: ageRange,
+        gender,
+        respuesta: capitalQuestion,
+        lead_type: "qualified",
+      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: "Emi - General Qualificado", ...dados })
+      window.dataLayer.push({ event: "Lead General Qualificado", ...dados })
     }
 
-      // Evento para GTM (sin enviar datos directamente a Meta CAPI)
-      if (sendQualified && typeof window !== "undefined") {
-        window.dataLayer = window.dataLayer || []
-        window.dataLayer.push({
-          event: "Emi - General Qualificado",
-          event_id: eventId,
-          event_category: "conversion",
-          event_label: "respuesta_encuesta_trading",
-          landing_page: "trading_desde_cero",
-          country: country,
-          age_range: ageRange,
-          gender: gender,
-          respuesta: capitalQuestion,
-          lead_type: "qualified",
-        })
-
-        window.dataLayer.push({
-          event: "Lead General Qualificado",
-          event_id: eventId,
-          event_category: "conversion",
-          event_label: "respuesta_encuesta_trading",
-          landing_page: "trading_desde_cero",
-          country: country,
-          age_range: ageRange,
-          gender: gender,
-          respuesta: capitalQuestion,
-          lead_type: "qualified",
-        })
-      }
-  } else {
-    console.log("[DEBUG CAPI] sendQualified es false, no se intenta CAPI")
-  }
-
-  console.log("[DEBUG] a punto de abrir WhatsApp", Date.now())
   window.open("https://chat.whatsapp.com/KtpVug57syVKpmxlfcLPID", "_blank")
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      <Script src={`${TRACKING_URL}/t.js`} data-landing="general" strategy="afterInteractive" />
       <div className="bg-[#00D084] py-3 px-4 text-center">
         <p className="text-xs md:text-sm font-bold tracking-wide text-white">PASO 2 DE 3 · CASI LISTO</p>
       </div>
