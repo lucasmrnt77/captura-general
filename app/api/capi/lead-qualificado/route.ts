@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { NextResponse } from "next/server"
 
 const PIXEL_ID = process.env.META_PIXEL_ID
-const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN
+const ACCESS_TOKEN = process.env.META_CAPI_ACCESS_TOKEN_GENERAL
 
 function normalizePhoneForMeta(phone: string): string {
   let normalized = phone.replace(/\D/g, "")
@@ -18,6 +18,18 @@ function normalizePhoneForMeta(phone: string): string {
   return normalized
 }
 
+function sanitizeEventSourceUrl(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl)
+    for (const key of ["email", "correo", "name", "nombre", "tel", "telefono", "phone", "phonenumber"]) {
+      url.searchParams.delete(key)
+    }
+    return url.toString()
+  } catch {
+    return sourceUrl
+  }
+}
+
 function sha256(value: string) {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex")
 }
@@ -31,7 +43,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const eventId = typeof body.event_id === "string" ? body.event_id : ""
     const phone = typeof body.phone === "string" ? body.phone : ""
-    const email = typeof body.email === "string" ? body.email : ""
+    const email = typeof body.email === "string" ? body.email.trim() : ""
+    const name = typeof body.name === "string" ? body.name.trim().slice(0, 256) : ""
     const eventSourceUrl = typeof body.event_source_url === "string" ? body.event_source_url : ""
 
     if (!eventId || (!phone && !email)) {
@@ -46,6 +59,12 @@ export async function POST(request: Request) {
     const normalizedPhone = normalizePhoneForMeta(phone)
     if (normalizedPhone) userData.ph = [sha256(normalizedPhone)]
     if (email) userData.em = [sha256(email)]
+    if (name) {
+      const [firstName, ...lastNameParts] = name.split(/\s+/)
+      if (firstName) userData.fn = [sha256(firstName)]
+      const lastName = lastNameParts.join(" ")
+      if (lastName) userData.ln = [sha256(lastName)]
+    }
     if (typeof body.fbp === "string" && body.fbp) userData.fbp = body.fbp
     if (typeof body.fbc === "string" && body.fbc) userData.fbc = body.fbc
 
@@ -58,7 +77,7 @@ export async function POST(request: Request) {
           event_time: Math.floor(Date.now() / 1000),
           event_id: eventId,
           action_source: "website",
-          event_source_url: eventSourceUrl,
+          event_source_url: sanitizeEventSourceUrl(eventSourceUrl),
           user_data: userData,
           custom_data: {
             country: body.country,
