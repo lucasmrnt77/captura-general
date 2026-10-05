@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { leadDaSessao } from "@/lib/lead-sessao"
 import { isArgentina } from "@/lib/country"
 
 function GraciasVideoContent() {
@@ -10,6 +11,8 @@ function GraciasVideoContent() {
   const [fbc, setFbc] = useState<string>("")
   const [phoneFromUrl, setPhoneFromUrl] = useState<string>("")
   const [country, setCountry] = useState<string>("")
+  const emailFromUrl = searchParams.get("email") ?? searchParams.get("correo") ?? leadDaSessao().email
+  const nameFromUrl = searchParams.get("name") ?? searchParams.get("nombre") ?? leadDaSessao().nombre
   const videoId = searchParams.get("country")?.toUpperCase() === "UY" ? "X8fXMfEF27s" : "QKaIpxSOAPQ"
   
   // Estados para las 4 preguntas
@@ -91,6 +94,9 @@ function GraciasVideoContent() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         event_id: eventId,
+        phone: searchParams.get("tel") ?? "",
+        email: emailFromUrl,
+        name: nameFromUrl,
         fbc,
         fbp,
         event_source_url: window.location.href,
@@ -216,6 +222,8 @@ const eventId = crypto.randomUUID()
         body: JSON.stringify({
           event_id: eventId,
           phone: phoneFromUrl,
+          email: emailFromUrl,
+          name: nameFromUrl,
           fbp,
           fbc,
           country,

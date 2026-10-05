@@ -19,6 +19,8 @@ export async function enviarParaPainel(body: Record<string, unknown>) {
       headers: { "Content-Type": "application/json", "x-api-token": token },
       body: JSON.stringify({
         telefono: body.telefono,
+        nombre: vazio(body.nombre) ?? vazio(body.name),
+        email: vazio(body.email) ?? vazio(body.correo),
         pagina_captura: vazio(body.pagina_captura), // "Gen-Uruguay" etc. → painel classifica como Nunca operou
         pagina_gracias: vazio(body.pag_gracias),
         utm_campaign: vazio(body.campana, "Directo"),

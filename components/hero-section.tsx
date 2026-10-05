@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
+import { emailValido, salvarLeadSessao } from "@/lib/lead-sessao"
 import { getDateAndTimeGMT3 } from "@/lib/date-utils"
 import { GeoLogoMarquee } from "@/components/geo-logo-marquee"
 
@@ -73,6 +74,8 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
   const [isVisible, setIsVisible] = useState(false)
   const [phone, setPhone] = useState("")
   const [phoneError, setPhoneError] = useState("")
+  const [email, setEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
   const [selectedCountry, setSelectedCountry] = useState(countries[0])
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const [showPhoneModal, setShowPhoneModal] = useState(false)
@@ -123,6 +126,17 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       return
     }
 
+    setEmailError("")
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail) {
+      setEmailError("Por favor, ingresa tu correo electr\u00f3nico")
+      return
+    }
+    if (!emailValido(cleanEmail)) {
+      setEmailError("Por favor, ingresa un correo electr\u00f3nico v\u00e1lido")
+      return
+    }
+
     const urlParams = new URLSearchParams(window.location.search)
     const campaign = urlParams.get("utm_campaign") || "Directo"
     const content = urlParams.get("utm_content") || "N/A"
@@ -144,6 +158,7 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       fecha: fecha,
       hora: hora,
       telefono: cleanPhone,
+      email: cleanEmail,
       pais: selectedCountry.name,
       pagina_captura: paginaCaptura,
       campana: campaign,
@@ -155,6 +170,9 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       video: "Video1",  // Nombre de la variable de entorno
       pag_gracias: assignedThankYouPage
     }
+
+    // E-mail para a página de obrigado (Meta/painel) sem colocar na URL
+    salvarLeadSessao({ email: cleanEmail, telefono: cleanPhone })
 
     try {
       // Guardar directamente en Google Sheets (sin API intermedia)
@@ -209,6 +227,13 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       const params = new URLSearchParams()
       params.set("tel", cleanPhone)
       window.location.href = `${assignedThankYouPage}?${params.toString()}`
+    }
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    if (emailError) {
+      setEmailError("")
     }
   }
 
@@ -329,12 +354,12 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
                   ×
                 </button>
 
-                <form onSubmit={handleSubmit} className="pt-3">
+                <form onSubmit={handleSubmit} noValidate className="pt-3">
                   <h2 id="phone-modal-title" className="pr-8 text-center text-xl font-bold leading-tight text-white md:text-2xl">
                     Asegurá tu lugar en el entrenamiento gratuito
                   </h2>
                   <p className="mt-3 text-center text-sm leading-relaxed text-gray-300 md:text-base">
-                    Ingresá tu WhatsApp. Ya que por ese medio enviaremos el acceso a las 4 clases y las novedades del evento.
+                    Ingresá tu WhatsApp y tu correo. Por WhatsApp enviaremos el acceso a las 4 clases y las novedades del evento.
                   </p>
 
                   <div className="mt-6">
@@ -390,6 +415,32 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
                       <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
                         <AlertCircle className="h-4 w-4 shrink-0 text-[#00D084]" />
                         <span>{phoneError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="email" className="sr-only">
+                      Correo electrónico
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      value={email}
+                      onChange={handleEmailChange}
+                      placeholder="Tu correo electrónico"
+                      className={`h-[52px] w-full rounded-lg border-2 bg-[#2a2a2a] px-4 text-base text-white placeholder:text-gray-500 transition-colors ${
+                        emailError ? "border-red-500 focus:border-red-500" : "border-gray-600 focus:border-[#00D084]"
+                      }`}
+                    />
+                    {emailError && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-[#00D084]" />
+                        <span>{emailError}</span>
                       </div>
                     )}
                   </div>
