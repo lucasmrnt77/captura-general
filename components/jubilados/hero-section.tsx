@@ -1,5 +1,6 @@
 "use client"
 
+import { telefoneComPais } from "@/lib/telefone-pais"
 import type React from "react"
 import Image from "next/image"
 import { ChevronDown } from "lucide-react"
@@ -54,20 +55,9 @@ const countries = [
 ]
 
 function formatPhoneNumber(phone: string, countryCode: string): string {
-  let cleaned = phone.replace(/\s/g, "")
-
-  // Para Uruguay: si empieza con 0, eliminarlo (ej: 099860812 -> 99860812)
-  if (countryCode === "UY" && cleaned.startsWith("0")) {
-    cleaned = cleaned.substring(1)
-  }
-
-  // Agregar prefijo del país al número (sin el +)
-  const dialCode = countries.find(c => c.code === countryCode)?.dial.replace("+", "") || ""
-  if (dialCode && !cleaned.startsWith(dialCode)) {
-    cleaned = dialCode + cleaned
-  }
-
-  return cleaned
+  // Regras do normalizar.ts (Argentina 549, Uruguay sem 0, EEUU 1, etc.) — iguais em todas as páginas
+  const pais = countries.find((c) => c.code === countryCode)
+  return telefoneComPais(phone, { nome: pais?.name ?? "", ddi: pais?.dial ?? "" })
 }
 
 export function HeroSection({ safe = false, pressBanner = false, pruebaJubilados = false, prueba1Copy = false, prueba2Promise = false, prueba3Copy = false, jubilacionPromise = false, enableGeolocation = false }: { safe?: boolean; pressBanner?: boolean; pruebaJubilados?: boolean; prueba1Copy?: boolean; prueba2Promise?: boolean; prueba3Copy?: boolean; jubilacionPromise?: boolean; enableGeolocation?: boolean }) {
