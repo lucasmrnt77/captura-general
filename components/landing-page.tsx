@@ -7,11 +7,14 @@ import { AboutMartin } from "@/components/about-martin"
 import { Statistics } from "@/components/statistics"
 import { CTASection } from "@/components/cta-section"
 import { FloatingCTA } from "@/components/floating-cta"
+import { Visita } from "@/components/lancamento/visita"
+import type { VarianteCaptura } from "@/lib/variantes"
 
-export function LandingPage({ safeMode, classTwoImage, countryLanding = false }: { safeMode: boolean; classTwoImage?: string; countryLanding?: boolean }) {
+export function LandingPage({ safeMode, classTwoImage, countryLanding = false, variante, landingVisita }: { safeMode: boolean; classTwoImage?: string; countryLanding?: boolean; variante?: VarianteCaptura; landingVisita?: string }) {
   return (
     <main className="min-h-screen bg-black">
-      <HeroSection safeMode={safeMode} countryLanding={countryLanding} />
+      {landingVisita && <Visita landing={landingVisita} />}
+      <HeroSection safeMode={safeMode} countryLanding={countryLanding} variante={variante} />
       {!safeMode && countryLanding && <PainPoints safeMode={safeMode} countryLanding={true} />}
       {!safeMode && <TestimonialsTitle />}
       {!safeMode && <TestimonialsSection geo={!safeMode} countryLanding={countryLanding} />}

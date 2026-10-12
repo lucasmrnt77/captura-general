@@ -5,5 +5,5 @@ export const revalidate = false
 export const metadata = { robots: { index: false, follow: false } }
 
 export default function Page() {
-  return <LandingPage safeMode={true} />
+  return <LandingPage safeMode={true} landingVisita="/" />
 }

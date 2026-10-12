@@ -7,6 +7,11 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Painel Sendflow em paralelo, independente das outras BDs
+    // Teste (?tde_teste=1 nas páginas novas): só o painel, no lançamento de testes
+    if (data?.teste === true) {
+      await enviarParaPainel(data)
+      return NextResponse.json({ success: true, message: 'Teste: enviado só ao painel' })
+    }
     const [result] = await Promise.all([saveLead(data), enviarParaPainel(data)])
 
     return NextResponse.json({

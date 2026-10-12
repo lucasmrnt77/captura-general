@@ -10,6 +10,8 @@ import { useState, useEffect } from "react"
 import { emailValido, salvarLeadSessao } from "@/lib/lead-sessao"
 import { getDateAndTimeGMT3 } from "@/lib/date-utils"
 import { GeoLogoMarquee } from "@/components/geo-logo-marquee"
+import { graciasDaPessoa, modoTeste, LANCAMENTO_TESTE } from "@/lib/lancamento"
+import type { VarianteCaptura } from "@/lib/variantes"
 
 function getThankYouPath(_phone: string): string {
   return "/gracias-video4"
@@ -60,7 +62,7 @@ function formatPhoneNumber(phone: string, countryCode: string): string {
   return telefoneComPais(phone, { nome: pais?.name ?? "", ddi: pais?.dial ?? "" })
 }
 
-export function HeroSection({ safeMode = false, countryLanding = false }: { safeMode?: boolean; countryLanding?: boolean }) {
+export function HeroSection({ safeMode = false, countryLanding = false, variante }: { safeMode?: boolean; countryLanding?: boolean; variante?: VarianteCaptura }) {
   const [isVisible, setIsVisible] = useState(false)
   const [phone, setPhone] = useState("")
   const [phoneError, setPhoneError] = useState("")
@@ -139,8 +141,10 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
     // Formatear telefono (eliminar 0 inicial para UY, solo numeros)
     const cleanPhone = formatPhoneNumber(phone, selectedCountry.code)
 
-    const assignedThankYouPage = getThankYouPath(cleanPhone)
-    const landingOrigin = window.location.pathname || "/"
+    // Páginas de teste (/v1–/v3): gracias sorteada (A/B/C) e landing pelo endereço
+    const teste = !!variante && modoTeste()
+    const assignedThankYouPage = variante ? graciasDaPessoa() : getThankYouPath(cleanPhone)
+    const landingOrigin = variante?.landing ?? (window.location.pathname || "/")
     const paginaCaptura = selectedCountry.name === "Uruguay" ? "Gen-Uruguay" : selectedCountry.name === "Argentina" ? "Gen-Argentina" : "Gen-Otro"
 
     const data = {
@@ -158,7 +162,8 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       utm_term: term,
       landing: landingOrigin,
       video: "Video1",  // Nombre de la variable de entorno
-      pag_gracias: assignedThankYouPage
+      pag_gracias: assignedThankYouPage,
+      ...(variante ? { teste, ...(teste ? { lancamento: LANCAMENTO_TESTE } : {}) } : {}),
     }
 
     // E-mail para a página de obrigado (Meta/painel) sem colocar na URL
@@ -166,9 +171,10 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
 
     try {
       // Guardar directamente en Google Sheets (sin API intermedia)
+      // Páginas de teste: a planilha nova espelha o painel (não grava direto no script antigo)
       const scriptUrl = "https://script.google.com/macros/s/AKfycbwwIRQbyoSBYLt-Nkbg2d74gyxytj8lBMeJjuGITKZ5btT-M62Q3dXJOHGSg6rDQ1O4/exec"
       
-      fetch(scriptUrl, {
+      if (!variante) fetch(scriptUrl, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -198,7 +204,8 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       }
 
       // Enviar webhook en paralelo sin bloquear (keepalive permite que continúe después de navegar)
-      fetch(webhookUrl, {
+      // Em teste não dispara a automação do Make (mensagens reais)
+      if (!teste) fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(webhookData),
@@ -210,6 +217,8 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
       params.set("tel", cleanPhone)
       if (campaign !== "Directo") params.set("utm_campaign", campaign)
       if (content !== "N/A") params.set("utm_content", content)
+      if (variante) params.set("country", selectedCountry.code)
+      if (teste) params.set("tde_teste", "1")
 
       window.location.href = `${assignedThankYouPage}?${params.toString()}`
     } catch {
@@ -259,7 +268,9 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
           <h1
             className="text-[21px] md:text-4xl lg:text-5xl font-poppins mb-4 md:mb-6 text-white leading-tight text-center max-w-3xl"
           >
-            {safeMode ? (
+            {variante && !safeMode ? (
+              variante.titulo
+            ) : safeMode ? (
               <>
                 {"Aprend\u00e9 c\u00f3mo funcionan los "}
                 <span className="font-bold">{"mercados financieros"}</span>
@@ -292,7 +303,9 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
           <p
             className="text-[11px] md:text-base font-poppins text-white mb-8 md:mb-10 leading-relaxed text-center max-w-3xl mx-auto px-2"
           >
-            {countryLanding ? (
+            {variante && !safeMode ? (
+              variante.subtitulo
+            ) : countryLanding ? (
               <>
                 <strong>Sin experiencia previa</strong>{", "}<strong>sin dejar tu trabajo</strong>{" y "}<strong>adaptado a tu rutina</strong>{"."}
               </>
@@ -314,7 +327,7 @@ export function HeroSection({ safeMode = false, countryLanding = false }: { safe
                 setShowPhoneModal(true)
               }}
             >
-              {countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}
+              {variante && !safeMode ? variante.botao : countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}
             </Button>
           </div>
 

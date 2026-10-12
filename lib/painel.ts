@@ -23,6 +23,8 @@ export async function enviarParaPainel(body: Record<string, unknown>) {
         email: vazio(body.email) ?? vazio(body.correo),
         pagina_captura: vazio(body.pagina_captura), // "Gen-Uruguay" etc. → painel classifica como Nunca operou
         pagina_gracias: vazio(body.pag_gracias),
+        landing: vazio(body.landing), // endereço da página ("/", "/v1"…) → métricas por página
+        lancamento: vazio(body.lancamento), // "teste-paginas" nos testes; vazio = lançamento ativo
         utm_campaign: vazio(body.campana, "Directo"),
         utm_content: vazio(body.anuncio, "N/A"),
         utm_source: vazio(body.utm_source),
@@ -54,6 +56,8 @@ export async function enviarPerfilParaPainel(body: Record<string, unknown>) {
         age_range: vazio(body.age_range),
         gender: vazio(body.gender),
         respuesta: vazio(body.respuesta) ?? vazio(body.capital_amount),
+        lancamento: vazio(body.lancamento),
+        ...(typeof body.qualificado === "boolean" ? { qualificado: body.qualificado } : {}),
       }),
       signal: AbortSignal.timeout(5000),
     })

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import Script from "next/script"
 
-const LANDING_PATHS = new Set(["/", "/pag1", "/pag2", "/pag3", "/Prueba1", "/Prueba2", "/Prueba3", "/Prueba4"])
+const LANDING_PATHS = new Set(["/", "/pag1", "/pag2", "/pag3", "/Prueba1", "/Prueba2", "/Prueba3", "/Prueba4", "/v1", "/v2", "/v3"])
 
 export function MetaPixel() {
   const pathname = usePathname()
