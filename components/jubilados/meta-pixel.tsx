@@ -3,7 +3,7 @@
 import Script from "next/script"
 import { usePathname } from "next/navigation"
 
-const META_PIXEL_ID = "4290138017915368"
+const META_PIXEL_ID = "1380310740734731"
 
 export function MetaPixel() {
   const pathname = usePathname()
