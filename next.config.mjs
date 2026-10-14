@@ -12,21 +12,22 @@ const nextConfig = {
       },
     ],
   },
-  // Geo sem código no servidor: a /v1 é uma página fixa (cache); quem não é de AR/UY/CL
-  // recebe a versão internacional (/v1-intl) pelo país que a Vercel informa no cabeçalho.
+  // Geo sem código no servidor: as capturas são páginas fixas (cache). Quem não é de AR/UY/CL
+  // recebe a versão internacional pelo país que a Vercel informa no cabeçalho.
   // ?pais=XX força o país (testes). Sem país conhecido, fica a versão local (como antes).
   async rewrites() {
     const naoLocal = '(?!(?:AR|UY|CL|ar|uy|cl)$).+'
+    const geo = (source, destination) => [
+      { source, has: [{ type: 'query', key: 'pais', value: naoLocal }], destination },
+      {
+        source,
+        missing: [{ type: 'query', key: 'pais' }],
+        has: [{ type: 'header', key: 'x-vercel-ip-country', value: naoLocal }],
+        destination,
+      },
+    ]
     return {
-      beforeFiles: [
-        { source: '/v1', has: [{ type: 'query', key: 'pais', value: naoLocal }], destination: '/v1-intl' },
-        {
-          source: '/v1',
-          missing: [{ type: 'query', key: 'pais' }],
-          has: [{ type: 'header', key: 'x-vercel-ip-country', value: naoLocal }],
-          destination: '/v1-intl',
-        },
-      ],
+      beforeFiles: [...geo('/', '/intl'), ...geo('/v1', '/v1-intl'), ...geo('/v2', '/v2-intl'), ...geo('/v3', '/v3-intl')],
     }
   },
 }
