@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { LandingPage } from "@/components/landing-page"
-import { resolveSafeMode } from "@/lib/geo"
 import { VARIANTES } from "@/lib/variantes"
 
 export const metadata: Metadata = {
@@ -8,9 +7,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 }
 
-// Geo: Argentina, Uruguay e Chile veem a versão local; o resto do mundo, a internacional.
-// Para testar: ?pais=CL, ?pais=US etc.
-export default async function Page({ searchParams }: { searchParams: Promise<{ pais?: string | string[] }> }) {
-  const { safeMode } = await resolveSafeMode(await searchParams)
-  return <LandingPage safeMode={safeMode} countryLanding={!safeMode} variante={VARIANTES.v1} landingVisita="/v1" />
+// Página fixa (servida do cache da Vercel, sem montar a cada visita).
+// Esta é a versão local (Argentina, Uruguai e Chile). A internacional fica em /v1-intl;
+// quem decide é a regra de rewrite do next.config.mjs, pelo país do visitante, sem rodar código.
+// Para testar: ?pais=AR (local) ou ?pais=US (internacional).
+export const dynamic = "force-static"
+
+export default function Page() {
+  return <LandingPage safeMode={false} countryLanding variante={VARIANTES.v1} landingVisita="/v1" />
 }
