@@ -172,10 +172,8 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
     try {
       // Guardar directamente en Google Sheets (sin API intermedia)
       // Igual a setembro: grava na hora na planilha do lançamento (modo teste não grava)
-      // Páginas do lançamento de dezembro (/v1–/v3) → planilha de dezembro; página antiga → planilha de setembro
-      const scriptUrl = variante
-        ? "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
-        : "https://script.google.com/macros/s/AKfycbwwIRQbyoSBYLt-Nkbg2d74gyxytj8lBMeJjuGITKZ5btT-M62Q3dXJOHGSg6rDQ1O4/exec"
+      // Todas as páginas (principal e /v1–/v3) → planilha "Pagina de Captura General - Diciembre"
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
       
       if (!teste) fetch(scriptUrl, {
         method: "POST",

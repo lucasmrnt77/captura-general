@@ -35,7 +35,7 @@ function GraciasVideoContent() {
     try {
       const telefono = phoneFromUrl || searchParams.get("tel") || ""
       const body = JSON.stringify({ telefono, pregunta, respuesta })
-      void fetch("https://script.google.com/macros/s/AKfycbxfW5fGaaQDSdK07m1DF1ggQCLht4u3AlebtZ4oCbqx49ZcLGX_XHcILAzEEDpmOgs/exec", {
+      void fetch("https://script.google.com/macros/s/AKfycbxBrQ0S_AXKZ48T79LlhA7whguWZE-KlC-F57qu_SDNCSWm8VXuGsVJH5Jmskrmcgzr/exec", {
         method: "POST",
         mode: "no-cors",
         keepalive: true,
@@ -174,7 +174,7 @@ function GraciasVideoContent() {
     }
 
     try {
-      const scriptUrl = "https://script.google.com/macros/s/AKfycby9c-wcZHlnN7F9k9GOZtAqxF5z14EtHmGKcln-jRK2tc1AZfRV0L0exJH-akgy-SAM/exec"
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
       await fetch(scriptUrl, {
         method: "POST",
         mode: "no-cors",
@@ -232,7 +232,7 @@ function GraciasVideoContent() {
       }
     }
 
-    window.open("https://chat.whatsapp.com/KtpVug57syVKpmxlfcLPID", "_blank")
+    window.open("https://links.traderdelite.net/geral", "_blank")
   }
 
 

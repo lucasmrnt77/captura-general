@@ -36,7 +36,7 @@ function GraciasVideoContent() {
 
     try {
       const telefono = phoneFromUrl || searchParams.get("tel") || ""
-      void fetch("https://script.google.com/macros/s/AKfycbxqAFFBFOv_u-0HWB5IJNgr0qUmzV7tOzFuXIFzafjct9QFmsqL4JETdvpgelpCRAvG/exec", {
+      void fetch("https://script.google.com/macros/s/AKfycbwrEjM6pXILkNNR2cqMhLdJfLMrV91VOfHYgWOexlHc2uPc1NLJ1sKcLMT5IZhoef-tjg/exec", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -179,7 +179,7 @@ function GraciasVideoContent() {
       }
 
       // 2. Actualizar en Google Sheets
-      const scriptUrl = "https://script.google.com/macros/s/AKfycby9c-wcZHlnN7F9k9GOZtAqxF5z14EtHmGKcln-jRK2tc1AZfRV0L0exJH-akgy-SAM/exec"
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
       
       const payload = {
         telefono: phoneFromUrl,
@@ -209,7 +209,7 @@ function GraciasVideoContent() {
         : capitalQuestion === "si_puedo" || capitalQuestion === "no_pero_podria"
 
       if (!sendQualified) {
-        window.open("https://chat.whatsapp.com/KtpVug57syVKpmxlfcLPID", "_blank")
+        window.open("https://links.traderdelite.net/geral", "_blank")
         return
       }
 
@@ -269,7 +269,7 @@ function GraciasVideoContent() {
 
 
     // Abre WhatsApp INMEDIATAMENTE sin mostrar cartel
-        window.open("https://chat.whatsapp.com/KtpVug57syVKpmxlfcLPID", "_blank")
+        window.open("https://links.traderdelite.net/geral", "_blank")
   }
 
   return (
