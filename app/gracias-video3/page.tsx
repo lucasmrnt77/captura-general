@@ -180,6 +180,7 @@ function GraciasVideoContent() {
         mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
+          action: "update", // PagGeneralDiciembre: atualiza edad/genero/respuesta da linha do telefone
           telefono: phoneFromUrl || searchParams.get("tel") || "",
           edad: ageRange,
           genero: gender,

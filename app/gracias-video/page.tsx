@@ -194,6 +194,7 @@ function GraciasVideoContent() {
       const scriptUrl = "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
       
       const payload = {
+        action: "update", // PagGeneralDiciembre: atualiza edad/genero/respuesta da linha do telefone
         telefono: phoneFromUrl || searchParams.get("tel") || "",
         edad: ageRange,
         genero: gender,
