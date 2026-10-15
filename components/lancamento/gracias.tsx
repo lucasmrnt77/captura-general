@@ -70,6 +70,19 @@ function gravarPerfil(dados: Record<string, unknown>) {
   } catch {}
 }
 
+/**
+ * Planilha do lançamento de dezembro (Apps Script) — o mesmo envio da página de obrigado de setembro
+ * (/gracias-video4): cada pergunta vai na hora em que é escolhida.
+ */
+// ActualizadorPorRespuestaIndividualDiciembre → planilha "Pagina de Captura General - Diciembre"
+const SCRIPT_PREGUNTA = "https://script.google.com/macros/s/AKfycbxBrQ0S_AXKZ48T79LlhA7whguWZE-KlC-F57qu_SDNCSWm8VXuGsVJH5Jmskrmcgzr/exec"
+
+function enviarPlanilha(url: string, dados: Record<string, unknown>, tipo = "text/plain;charset=utf-8") {
+  try {
+    void fetch(url, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": tipo }, body: JSON.stringify(dados) }).catch(() => {})
+  } catch {}
+}
+
 export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
   const t = TEXTOS[variante]
   const searchParams = useSearchParams()
@@ -101,9 +114,18 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const escolher = (campo: "age_range" | "gender" | "respuesta", valor: string) => {
+  const preguntasEnviadas = useRef(new Set<string>())
+  const escolher = (campo: "age_range" | "gender" | "respuesta", valor: string, texto?: string) => {
     if (!valor || !telefone) return
     gravarPerfil({ telefono: telefone, lancamento, [campo]: campo === "respuesta" ? RESPOSTAS[valor] ?? valor : valor })
+    // Planilha (como em setembro): pergunta 1/2/3 com o texto da opção, uma vez por resposta
+    if (teste) return
+    const pregunta = campo === "age_range" ? "1" : campo === "gender" ? "2" : "3"
+    const respuesta = texto ?? valor
+    const chave = `${pregunta}:${respuesta}`
+    if (preguntasEnviadas.current.has(chave)) return
+    preguntasEnviadas.current.add(chave)
+    enviarPlanilha(SCRIPT_PREGUNTA, { telefono: telefone, pregunta, respuesta })
   }
 
   const enviar = async () => {
@@ -121,6 +143,17 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
       tde("qualificar", { telefone, email, pais: pais || undefined, idade: faixa, genero, resposta }),
       2500,
     )
+
+    if (!teste && telefone) {
+      // Banco antigo, igual à /gracias-video4 de setembro
+      try {
+        void fetch("/api/leads/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telefono: telefone, age_range: faixa, gender: genero, video_id: pais === "UY" ? "X8fXMfEF27s" : "QKaIpxSOAPQ", respuesta: RESPOSTAS[resposta] }),
+        }).catch(() => {})
+      } catch {}
+    }
 
     gravarPerfil({
       telefono: telefone,
@@ -181,7 +214,7 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
         <div className="w-full space-y-6 mb-6">
           <div>
             <label htmlFor="edad" className="text-sm md:text-base text-white mb-3 block font-semibold">1. ¿Cuál es tu rango de edad?</label>
-            <select id="edad" value={faixa} onChange={(e) => { setFaixa(e.target.value); escolher("age_range", e.target.value); setShowError(false) }} className={campo(!faixa)}>
+            <select id="edad" value={faixa} onChange={(e) => { setFaixa(e.target.value); escolher("age_range", e.target.value, e.target.options[e.target.selectedIndex]?.text); setShowError(false) }} className={campo(!faixa)}>
               <option value="">Seleccionar opción</option>
               <option value="menor_25">Menor de 25</option>
               <option value="25_34">25 a 34 años</option>
@@ -195,7 +228,7 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
           {mostrarGenero && (
             <div className="animate-in fade-in duration-200">
               <label htmlFor="sexo" className="text-sm md:text-base text-white mb-3 block font-semibold">2. ¿Cuál es tu sexo?</label>
-              <select id="sexo" value={genero} onChange={(e) => { setGenero(e.target.value); escolher("gender", e.target.value); setShowError(false) }} className={campo(!genero)}>
+              <select id="sexo" value={genero} onChange={(e) => { setGenero(e.target.value); escolher("gender", e.target.value, e.target.options[e.target.selectedIndex]?.text); setShowError(false) }} className={campo(!genero)}>
                 <option value="">Seleccionar opción</option>
                 <option value="hombre">Hombre</option>
                 <option value="mujer">Mujer</option>
@@ -211,7 +244,7 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
               <p className="mb-2 text-left text-[13px] font-normal text-zinc-300">
                 Solo para saber desde dónde arrancás. Ese dinero no es para mí, queda en tu cuenta y lo manejás vos.
               </p>
-              <select id="capital" value={resposta} onChange={(e) => { setResposta(e.target.value); escolher("respuesta", e.target.value); setShowError(false) }} className={campo(!resposta)}>
+              <select id="capital" value={resposta} onChange={(e) => { setResposta(e.target.value); escolher("respuesta", e.target.value, e.target.options[e.target.selectedIndex]?.text); setShowError(false) }} className={campo(!resposta)}>
                 <option value="">Seleccionar opción</option>
                 <option value="no_imposible">{RESPOSTAS.no_imposible}</option>
                 <option value="no_pero_podria">{RESPOSTAS.no_pero_podria}</option>
