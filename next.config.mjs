@@ -15,6 +15,14 @@ const nextConfig = {
   // Geo sem código no servidor: as capturas são páginas fixas (cache). Quem não é de AR/UY/CL
   // recebe a versão internacional pelo país que a Vercel informa no cabeçalho.
   // ?pais=XX força o país (testes). Sem país conhecido, fica a versão local (como antes).
+  // Nomenclatura única /v1, /v2… (igual na Trader e no painel). Endereços antigos continuam funcionando.
+  async redirects() {
+    return [
+      { source: '/gracias-a', destination: '/gracias-v1', permanent: false },
+      { source: '/gracias-b', destination: '/gracias-v2', permanent: false },
+      { source: '/gracias-c', destination: '/gracias-v3', permanent: false },
+    ]
+  },
   async rewrites() {
     const naoLocal = '(?!(?:AR|UY|CL|ar|uy|cl)$).+'
     const geo = (source, destination) => [

@@ -1,5 +1,6 @@
 /**
- * Configuração das páginas de teste do lançamento (captura /v1–/v3 e gracias A/B/C).
+ * Configuração das páginas de teste do lançamento (captura /v1–/v3 e gracias /gracias-v1–/gracias-v3).
+ * Nomenclatura única (igual na Trader e no painel): /v1, /v2, /v3… e /gracias-v1, /gracias-v2…
  *
  * - Captura: a divisão entre /v1, /v2 e /v3 é feita pelo link do painel
  *   (aba Links → um link com 3 destinos e a porcentagem de cada um).
@@ -17,15 +18,15 @@ export type OpcaoPeso = { path: string; peso: number }
 
 /** Pesos das páginas de gracias (somam 100). Para tirar uma do teste, peso 0. */
 export const GRACIAS_TESTE: OpcaoPeso[] = [
-  { path: "/gracias-a", peso: 34 },
-  { path: "/gracias-b", peso: 33 },
-  { path: "/gracias-c", peso: 33 },
+  { path: "/gracias-v1", peso: 34 },
+  { path: "/gracias-v2", peso: 33 },
+  { path: "/gracias-v3", peso: 33 },
 ]
 
 /** Sorteio pelo peso. `r` entre 0 e 1 (parâmetro só para os testes). */
 export function sortearPorPeso(opcoes: OpcaoPeso[], r: number = Math.random()): string {
   const validas = opcoes.filter((o) => o.peso > 0)
-  if (validas.length === 0) return opcoes[0]?.path ?? "/gracias-a"
+  if (validas.length === 0) return opcoes[0]?.path ?? "/gracias-v1"
   const total = validas.reduce((t, o) => t + o.peso, 0)
   let alvo = r * total
   for (const o of validas) {

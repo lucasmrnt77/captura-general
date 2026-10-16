@@ -19,7 +19,7 @@ function loadGtm() {
 
 export function DeferredTracking() {
   useEffect(() => {
-    const isThanksPage = ["/gracias", "/gracias-video", "/gracias1-video", "/gracias-video3", "/gracias-video4", "/gracias-a", "/gracias-b", "/gracias-c"].includes(window.location.pathname)
+    const isThanksPage = ["/gracias", "/gracias-video", "/gracias1-video", "/gracias-video3", "/gracias-video4", "/gracias-a", "/gracias-b", "/gracias-c", "/gracias-v1", "/gracias-v2", "/gracias-v3"].includes(window.location.pathname)
 
     if (isThanksPage) {
       loadGtm()
