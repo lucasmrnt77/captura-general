@@ -19,7 +19,7 @@ export function LandingPage({ safeMode, classTwoImage, countryLanding = false, v
       {!safeMode && <TestimonialsTitle />}
       {!safeMode && <TestimonialsSection geo={!safeMode} countryLanding={countryLanding} />}
       {(!safeMode && !countryLanding) || safeMode ? <PainPoints safeMode={safeMode} countryLanding={false} /> : null}
-      {!safeMode && <ClassesSection classTwoImage={classTwoImage} countryLanding={countryLanding} />}
+      <ClassesSection classTwoImage={classTwoImage} countryLanding={countryLanding} />
       <AboutMartin safeMode={safeMode} countryLanding={countryLanding} />
       <Statistics countryLanding={countryLanding} />
       <CTASection countryLanding={countryLanding} />
