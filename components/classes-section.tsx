@@ -11,7 +11,7 @@ export function ClassesSection({ classTwoImage, countryLanding = false }: { clas
       description: "ingresos extras desde tu casa",
       date: "7 de Diciembre",
       time: "20:00 hs (UY/ARG) | 19:00 hs (Miami EEUU)",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1-Wo1gU3MFWDI3H9ew6zCqcJFIRo297O.png",
+      image: "/images/aulas/aula-1.webp",
     },
     {
       number: 2,
@@ -19,7 +19,7 @@ export function ClassesSection({ classTwoImage, countryLanding = false }: { clas
       description: "500 a 2.000 USD al mes",
       date: "8 de Diciembre",
       time: "20:00 hs (UY/ARG) | 19:00 hs (Miami EEUU)",
-      image: classTwoImage ?? "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2-we1WtsvuDGD2v0cTxvUpBzWYgAUDYb.png",
+      image: classTwoImage ?? "/images/aulas/aula-2.webp",
     },
     {
       number: 3,
@@ -27,7 +27,7 @@ export function ClassesSection({ classTwoImage, countryLanding = false }: { clas
       description: "para generar ingresos recurrentes",
       date: "9 de Diciembre",
       time: "20:00 hs (UY/ARG) | 19:00 hs (Miami EEUU)",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/3-aNc4PojxQ2jCpzvIL38L2fDiWw3Z1E.png",
+      image: "/images/aulas/aula-3.webp",
     },
     {
       number: 4,
@@ -35,7 +35,7 @@ export function ClassesSection({ classTwoImage, countryLanding = false }: { clas
       description: "el método y cambiaron su vida",
       date: "10 de Diciembre",
       time: "20:00 hs (UY/ARG) | 19:00 hs (Miami EEUU)",
-      image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/4-d9TmZkg3sYBS33vkCnR81SQw1YzymI.png",
+      image: "/images/aulas/aula-4.webp",
     },
   ]
 
