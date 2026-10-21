@@ -39,8 +39,8 @@ export function CTASection() {
   }, [])
 
   useEffect(() => {
-    // 7 de Septiembre 2026 a las 20:00 GMT-3
-    const targetDate = new Date("2026-09-07T23:00:00Z") // 20:00 GMT-3 = 23:00 UTC
+    // 7 de Diciembre 2026 a las 20:00 GMT-3
+    const targetDate = new Date("2026-12-07T23:00:00Z") // 20:00 GMT-3 = 23:00 UTC
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime()

@@ -58,7 +58,7 @@ export function EventOverviewSection() {
             </div>
             <h4 className="text-xl font-bold text-white mb-2">CUÁNDO</h4>
             <div className="text-gray-200 text-sm leading-relaxed space-y-1">
-              <p className="font-semibold">Del 7 al 10 de septiembre</p>
+              <p className="font-semibold">Del 7 al 10 de diciembre</p>
               <p>Se darán 4 clases en vivo,</p>
               <p>una por día a las:</p>
               <p>

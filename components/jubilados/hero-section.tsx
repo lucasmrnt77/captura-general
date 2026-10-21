@@ -555,7 +555,7 @@ export function HeroSection({ safe = false, pressBanner = false, pruebaJubilados
             <>
               <div className="mb-24 flex w-fit max-w-[320px] items-center justify-center gap-2 px-3 py-2 border-2 border-gray-300 rounded-full mx-auto text-gray-300">
                 <Calendar className="h-5 w-5 text-gray-300 flex-shrink-0" />
-                <span className="text-[12px] font-montserrat font-medium whitespace-nowrap">7 al 10 de Septiembre</span>
+                <span className="text-[12px] font-montserrat font-medium whitespace-nowrap">7 al 10 de Diciembre</span>
               </div>
               <div className="relative left-1/2 w-screen -translate-x-1/2">
                 <LogoMarquee geo />
@@ -568,7 +568,7 @@ export function HeroSection({ safe = false, pressBanner = false, pruebaJubilados
               {/* Fecha */}
               <div className="flex items-center justify-center gap-3 px-5 py-2 border-2 border-[#00D084] rounded-full max-w-xs mx-auto">
                 <Calendar className="w-5 h-5 md:w-6 md:h-6 text-[#00D084] flex-shrink-0" />
-                <span className="text-[12px] md:text-sm font-montserrat font-medium">7 al 10 de Septiembre</span>
+                <span className="text-[12px] md:text-sm font-montserrat font-medium">7 al 10 de Diciembre</span>
               </div>
 
               {/* Horario */}

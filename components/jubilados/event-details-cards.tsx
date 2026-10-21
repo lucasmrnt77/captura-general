@@ -50,7 +50,7 @@ export function EventDetailsCards() {
                   <h3 className="text-xl md:text-2xl font-bold text-white mb-3">CUÁNDO</h3>
                   <div className="w-full h-1 bg-[#00D084] rounded mb-4"></div>
                   <p className="text-base md:text-lg text-gray-200 leading-relaxed mb-0">
-                    Del <span className="font-bold text-[#00D084]">7 al 10 de Septiembre</span>. <span className="font-bold text-[#00D084]">4 clases en vivo</span> a las <span className="font-bold text-[#00D084]">20:00 HS</span> 🇺🇾 🇦🇷
+                    Del <span className="font-bold text-[#00D084]">7 al 10 de Diciembre</span>. <span className="font-bold text-[#00D084]">4 clases en vivo</span> a las <span className="font-bold text-[#00D084]">20:00 HS</span> 🇺🇾 🇦🇷
                   </p>
                 </div>
               </div>
