@@ -58,6 +58,7 @@ export async function enviarPerfilParaPainel(body: Record<string, unknown>) {
         respuesta: vazio(body.respuesta) ?? vazio(body.capital_amount),
         lancamento: vazio(body.lancamento),
         ...(typeof body.qualificado === "boolean" ? { qualificado: body.qualificado } : {}),
+        ...(body.clique_grupo === true ? { clique_grupo: true } : {}),
       }),
       signal: AbortSignal.timeout(5000),
     })

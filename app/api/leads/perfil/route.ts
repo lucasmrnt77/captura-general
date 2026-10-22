@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     respuesta: texto(b.respuesta),
     lancamento,
     ...(typeof b.qualificado === "boolean" ? { qualificado: b.qualificado } : {}),
+    ...(b.clique_grupo === true ? { clique_grupo: true } : {}),
   })
   return NextResponse.json({ ok: true })
 }

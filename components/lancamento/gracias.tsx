@@ -162,6 +162,8 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
       gender: genero,
       respuesta: RESPOSTAS[resposta],
       ...(typeof res?.qualificado === "boolean" ? { qualificado: res.qualificado } : {}),
+      // Clicou em "unirme al grupo": é o que o painel conta como lead nos testes de página
+      clique_grupo: true,
     })
 
     if (res?.qualificado && res.event_id) {

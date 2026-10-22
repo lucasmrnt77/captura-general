@@ -167,6 +167,19 @@ function GraciasVideoContent() {
       window.dataLayer.push({ event: "Lead General Qualificado", ...dados })
     }
 
+    // Painel: clicou em "unirme al grupo" (lead dos testes de página) + decisão de calificado
+    const telPainel = phoneFromUrl || searchParams.get("tel") || ""
+    if (telPainel) {
+      try {
+        void fetch("/api/leads/perfil", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telefono: telPainel, ...(typeof res?.qualificado === "boolean" ? { qualificado: res.qualificado } : {}), clique_grupo: true }),
+          keepalive: true,
+        }).catch(() => {})
+      } catch {}
+    }
+
   window.open("https://links.traderdelite.net/geral", "_blank")
   }
 
