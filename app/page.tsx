@@ -1,3 +1,4 @@
+import { LINK_UNICO_ATIVO } from "@/lib/divisao"
 import { LandingPage } from "@/components/landing-page"
 import { VARIANTES } from "@/lib/variantes"
 
@@ -7,5 +8,5 @@ import { VARIANTES } from "@/lib/variantes"
 export const dynamic = "force-static"
 
 export default function Page() {
-  return <LandingPage safeMode={false} countryLanding landingVisita="/" variantes={VARIANTES} />
+  return <LandingPage safeMode={false} countryLanding landingVisita="/" variantes={LINK_UNICO_ATIVO ? VARIANTES : undefined} />
 }

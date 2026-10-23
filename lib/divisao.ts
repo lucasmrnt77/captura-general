@@ -23,6 +23,15 @@
  * (nenhum dos dois grava cookie). Junte ?tde_teste=1 para não sujar a Meta nem o painel.
  */
 
+/**
+ * LIGA/DESLIGA o link único sem mexer no código: variável de ambiente LINK_UNICO no projeto da Vercel.
+ *   LINK_UNICO = ligado  → o domínio puro sorteia as variações do teste da vez (abaixo).
+ *   sem a variável (ou qualquer outro valor) → o domínio puro mostra só a página principal, igual ao
+ *   lançamento anterior: sem sorteio, sem script e sem os textos das variações na página.
+ * Depois de mudar a variável: Deployments → ⋯ → Redeploy (a página é gerada no deploy).
+ */
+export const LINK_UNICO_ATIVO = process.env.LINK_UNICO === "ligado"
+
 export type TesteDivisao = {
   nome: string
   /** AAAA-MM-DD, horário do Uruguai */
@@ -34,7 +43,7 @@ export type TesteDivisao = {
 export const TESTES_DIVISAO: TesteDivisao[] = [
   // Teste 1 do Emi, headlines oficiais (A=/v1, B=/v2, C=/v3, D=/v4), a partir de hoje.
   // Nome novo = sorteio novo para todo mundo (quem já tinha caído nos textos provisórios é sorteado de novo).
-  { nome: "Teste 1 · Headline oficial", inicio: "2026-10-23", variacoes: { "/v1": 25, "/v2": 25, "/v3": 25, "/v4": 25 } },
+  { nome: "Teste 1 · Headline oficial", inicio: "2026-10-26", variacoes: { "/v1": 25, "/v2": 25, "/v3": 25, "/v4": 25 } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
