@@ -237,8 +237,11 @@ function GraciasVideoContent() {
         <p className="mb-0 text-center text-base font-normal text-zinc-300">
           Las adapto a lo que necesita la mayoría. Tardás 20 segundos y te van a servir mucho más.
         </p>
-        <p className="mt-2 mb-5 text-center text-[13px] font-normal text-zinc-300">
-          Tus respuestas son anónimas
+        <p className="mt-3 mb-5 flex justify-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#20d681]/40 bg-[#20d681]/10 px-3 py-1 text-[13px] font-medium text-[#7ff0b8]">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            Tus respuestas son anónimas
+          </span>
         </p>
         <div className="w-full space-y-6 mb-6">
           {/* Pregunta 1: Rango de edad */}
