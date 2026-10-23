@@ -8,7 +8,7 @@ import type { VarianteCaptura } from "@/lib/variantes"
  */
 const verde = "font-bold text-[#00D084]"
 
-export const VARIANTES_INTL: Record<"v1" | "v2" | "v3", VarianteCaptura> = {
+export const VARIANTES_INTL: Record<"v1" | "v2" | "v3" | "v4", VarianteCaptura> = {
   // Controle: igual à página internacional de hoje
   v1: {
     landing: "/v1",
@@ -66,5 +66,24 @@ export const VARIANTES_INTL: Record<"v1" | "v2" | "v3", VarianteCaptura> = {
       </>
     ),
     botao: "SÍ, QUIERO PARTICIPAR GRATIS",
+  },
+  // Mesmo ângulo da D local, sem promessa de dinheiro
+  v4: {
+    landing: "/v4",
+    titulo: (
+      <>
+        {"No se trata de ahorrar más, sino de "}
+        <span className="font-bold text-white">qué hacés con tu dinero</span>
+        {". Aprendé cómo funcionan los "}
+        <span className={verde}>mercados financieros</span>
+        {" desde cero"}
+      </>
+    ),
+    subtitulo: (
+      <>
+        Un paso a paso <strong>en vivo y online</strong>, pensado para quien <strong>nunca invirtió</strong> y tiene poco tiempo.
+      </>
+    ),
+    botao: "QUIERO MI CUPO GRATIS",
   },
 }

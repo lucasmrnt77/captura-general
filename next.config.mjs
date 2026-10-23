@@ -38,7 +38,7 @@ const nextConfig = {
       },
     ]
     return {
-      beforeFiles: [...geo('/', '/intl'), ...geo('/v1', '/v1-intl'), ...geo('/v2', '/v2-intl'), ...geo('/v3', '/v3-intl')],
+      beforeFiles: [...geo('/', '/intl'), ...geo('/v1', '/v1-intl'), ...geo('/v2', '/v2-intl'), ...geo('/v3', '/v3-intl'), ...geo('/v4', '/v4-intl')],
     }
   },
 }
