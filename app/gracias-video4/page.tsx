@@ -45,6 +45,28 @@ function GraciasVideoContent() {
     } catch {}
   }
 
+  // Painel: cada resposta vai na hora (como na planilha), sem esperar o botão do grupo
+  const painelRespostas = useRef(new Set<string>())
+  const enviarRespostaPainel = (campo: "age_range" | "gender" | "respuesta", valor: string) => {
+    const telefono = phoneFromUrl || searchParams.get("tel") || ""
+    if (!telefono || !valor) return
+    const chave = `${campo}:${valor}`
+    if (painelRespostas.current.has(chave)) return
+    painelRespostas.current.add(chave)
+    try {
+      void fetch("/api/leads/perfil", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telefono,
+          [campo]: valor,
+          ...(searchParams.get("tde_teste") === "1" ? { lancamento: "teste-paginas" } : {}),
+        }),
+        keepalive: true,
+      }).catch(() => {})
+    } catch {}
+  }
+
   const generalPageviewSentRef = useRef(false)
 
   useEffect(() => {
@@ -228,7 +250,7 @@ function GraciasVideoContent() {
               value={ageRange}
               onChange={(e) => {
                 setAgeRange(e.target.value)
-                if (e.target.value) { setGenderRevealed(true); sendQuestionEvent("1", e.target.options[e.target.selectedIndex].text) }
+                if (e.target.value) { setGenderRevealed(true); sendQuestionEvent("1", e.target.options[e.target.selectedIndex].text); enviarRespostaPainel("age_range", e.target.value) }
                 setShowError(false)
               }}
               className={`w-full p-3 rounded-lg bg-zinc-900 border text-white text-sm md:text-base appearance-none cursor-pointer ${
@@ -256,7 +278,7 @@ function GraciasVideoContent() {
               onChange={(e) => {
                 setGender(e.target.value)
                 if (e.target.value) setCapitalQuestionRevealed(true)
-                if (e.target.value) sendQuestionEvent("2", e.target.options[e.target.selectedIndex].text)
+                if (e.target.value) { sendQuestionEvent("2", e.target.options[e.target.selectedIndex].text); enviarRespostaPainel("gender", e.target.value) }
                 setShowError(false)
               }}
               className={`w-full p-3 rounded-lg bg-zinc-900 border text-white text-sm md:text-base appearance-none cursor-pointer ${
@@ -282,7 +304,7 @@ function GraciasVideoContent() {
               value={capitalQuestion}
               onChange={(e) => {
                 setCapitalQuestion(e.target.value)
-                if (e.target.value) sendQuestionEvent("3", e.target.options[e.target.selectedIndex].text)
+                if (e.target.value) { sendQuestionEvent("3", e.target.options[e.target.selectedIndex].text); enviarRespostaPainel("respuesta", getResponseText(e.target.value)) }
                 setShowError(false)
               }}
               className={`w-full p-3 rounded-lg bg-zinc-900 border text-white text-sm md:text-base appearance-none cursor-pointer ${
