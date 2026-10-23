@@ -1,11 +1,11 @@
 /**
  * Link único dos anúncios: o domínio puro (ex.: eventogeneral.metodoconsistente.com/).
  *
- * Quem abre "/" recebe o conteúdo de uma das variações do teste da vez, no MESMO endereço
- * (sem redirecionamento, sem outro domínio, sem banco): o proxy/middleware da Vercel sorteia
- * pelos pesos abaixo e serve /v1, /v2… (ou /vN-intl fora de AR/UY/CL) por trás de "/".
- * A página servida informa ao painel a própria variação (landingVisita / variante.landing),
- * então visita, cadastro, planilha e calificado ficam com "/v2" mesmo com o endereço "/".
+ * Quem abre "/" recebe uma das variações do teste da vez, no MESMO endereço e sem servidor no caminho:
+ * "/" (e "/intl") é uma página fixa em cache com o texto de todas as variações, e um script de ~1 KB
+ * (lib/sorteio.ts) sorteia pelos pesos abaixo antes de a tela pintar. A variação sorteada vai para o
+ * painel, a planilha e o formulário ("/v2" mesmo com o endereço "/"). Mais rápido que sortear no
+ * servidor (proxy/middleware), que deixava o domínio puro mais lento no PageSpeed.
  *
  * COMO TROCAR DE TESTE (o anúncio nunca muda, a Meta não reaprende):
  *  1. Acrescente um teste novo em TESTES_DIVISAO com o dia de início e as variações + pesos.

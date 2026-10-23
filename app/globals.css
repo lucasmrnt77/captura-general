@@ -180,3 +180,15 @@ html {
   box-shadow: 0 0 20px #20d681;
   transform: scale(1.05);
 }
+
+/* Link único (lib/sorteio.ts): a página "/" traz o texto de todas as variações e mostra só a sorteada.
+   Sem o script (ou sem teste ativo) fica a página principal. */
+[data-var] { display: none; }
+html:not([data-v]) [data-var="principal"],
+html[data-v="principal"] [data-var="principal"],
+html[data-v="v1"] [data-var="v1"],
+html[data-v="v2"] [data-var="v2"],
+html[data-v="v3"] [data-var="v3"],
+html[data-v="v4"] [data-var="v4"],
+html[data-v="v5"] [data-var="v5"],
+html[data-v="v6"] [data-var="v6"] { display: inline; }
