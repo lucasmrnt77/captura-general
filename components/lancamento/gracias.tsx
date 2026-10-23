@@ -274,7 +274,7 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
             </button>
             {avisoTeste && <p role="status" data-teste-resultado className="mt-3 text-center text-sm text-amber-300">{avisoTeste}</p>}
             <a
-              href="https://wa.me/59896593587?text=Hola,%20estoy%20necesitando%20ayuda%20para%20registrarme%20al%20evento"
+              href="https://wa.me/59896356425?text=Hola,%20estoy%20necesitando%20ayuda%20para%20registrarme%20al%20evento"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex min-h-[60px] w-full items-center justify-center rounded-full border border-zinc-400 bg-transparent px-8 py-4 text-center text-[13px] font-bold text-zinc-300 whitespace-nowrap transition-colors hover:border-zinc-200 hover:text-white"
