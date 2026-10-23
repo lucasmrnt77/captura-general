@@ -24,9 +24,9 @@ const nextConfig = {
     ]
   },
   async rewrites() {
-    // TEMPORÁRIO (21/10/2026): todos os países veem a versão internacional (a mesma do Brasil).
-    // Para voltar à versão local para AR/UY/CL, troque para false.
-    const TODOS_INTERNACIONAL = true
+    // Argentina, Uruguai e Chile veem a versão local; o resto do mundo, a internacional (/intl, /vN-intl).
+    // Para mostrar a versão internacional a todos os países, troque para true.
+    const TODOS_INTERNACIONAL = false
     const naoLocal = '(?!(?:AR|UY|CL|ar|uy|cl)$).+'
     const geo = (source, destination) => TODOS_INTERNACIONAL ? [{ source, destination }] : [
       { source, has: [{ type: 'query', key: 'pais', value: naoLocal }], destination },
