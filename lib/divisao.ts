@@ -32,7 +32,7 @@ export type TesteDivisao = {
 }
 
 export const TESTES_DIVISAO: TesteDivisao[] = [
-  { nome: "Teste 1 · Headline", inicio: "2026-10-24", variacoes: { "/v1": 34, "/v2": 33, "/v3": 33 } },
+  { nome: "Teste 1 · Headline", inicio: "2026-10-23", variacoes: { "/v1": 34, "/v2": 33, "/v3": 33 } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
