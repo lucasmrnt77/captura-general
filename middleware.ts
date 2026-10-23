@@ -4,8 +4,10 @@ import { COOKIE_DIVISAO, DURACAO_COOKIE, diaUruguai, ehInternacional, escolherVa
 /**
  * Link único: "/" mostra a variação do teste da vez no mesmo endereço (ver lib/divisao.ts).
  * Só roda em "/". As outras páginas continuam fixas, em cache, sem passar por aqui.
+ * middleware.ts (edge, perto da pessoa) e não proxy.ts: no Next 16 o proxy roda em Node e a página
+ * servida por ele caía de ~99 para ~68 no PageSpeed. A Trader (edge) tira 100.
  */
-export function proxy(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const q = req.nextUrl.searchParams
   const e = escolherVariacao({
     dia: diaUruguai(),
