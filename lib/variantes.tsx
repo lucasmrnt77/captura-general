@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 /**
  * Variações de copy das páginas de captura de teste (/v1, /v2, /v3).
  * Mesma página atual (versão AR/UY/CL); muda só o topo: título, subtítulo e botão.
- * A versão internacional (resto do mundo) continua com o título "safe" em todas.
+ * Versão AR/UY/CL (com promessa de dinheiro). A versão internacional (resto do mundo) usa lib/variantes-intl.tsx.
  */
 export type VarianteCaptura = {
   landing: string

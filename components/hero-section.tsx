@@ -12,6 +12,7 @@ import { getDateAndTimeGMT3 } from "@/lib/date-utils"
 import { GeoLogoMarquee } from "@/components/geo-logo-marquee"
 import { graciasDaPessoa, modoTeste, LANCAMENTO_TESTE } from "@/lib/lancamento"
 import type { VarianteCaptura } from "@/lib/variantes"
+import { VARIANTES_INTL } from "@/lib/variantes-intl"
 
 function getThankYouPath(_phone: string): string {
   return "/gracias-video4"
@@ -245,8 +246,11 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
     }
   }
 
+  // Testes (/v1, /v2…): AR/UY/CL usa lib/variantes.tsx (com promessa); o resto do mundo, lib/variantes-intl.tsx (sem promessa)
+  const copia = variante ? (safeMode ? VARIANTES_INTL[variante.landing.replace("/", "") as keyof typeof VARIANTES_INTL] : variante) : undefined
+
   return (
-    <section className="relative">
+    <section className="relative" data-hero-visita>
       <div className="bg-[#00D084] text-white text-center py-4 md:py-6">
         <div className="text-base md:text-lg font-bold tracking-wide px-4">ENTRENAMIENTO GRATUITO Y ONLINE</div>
       </div>
@@ -269,8 +273,8 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
           <h1
             className="text-[21px] md:text-4xl lg:text-5xl font-poppins mb-4 md:mb-6 text-white leading-tight text-center max-w-3xl"
           >
-            {variante && !safeMode ? (
-              variante.titulo
+            {copia ? (
+              copia.titulo
             ) : safeMode ? (
               <>
                 {"Aprend\u00e9 c\u00f3mo funcionan los "}
@@ -304,8 +308,8 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
           <p
             className="text-[11px] md:text-base font-poppins text-white mb-8 md:mb-10 leading-relaxed text-center max-w-3xl mx-auto px-2"
           >
-            {variante && !safeMode ? (
-              variante.subtitulo
+            {copia ? (
+              copia.subtitulo
             ) : countryLanding ? (
               <>
                 <strong>Sin experiencia previa</strong>{", "}<strong>sin dejar tu trabajo</strong>{" y "}<strong>adaptado a tu rutina</strong>{"."}
@@ -328,7 +332,7 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
                 setShowPhoneModal(true)
               }}
             >
-              {variante && !safeMode ? variante.botao : countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}
+              {copia ? copia.botao : countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}
             </Button>
           </div>
 
