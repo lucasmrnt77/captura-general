@@ -146,7 +146,8 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
 
     // Páginas de teste (/v1–/v3 ou a variação sorteada no link único): gracias sorteada e landing da variação
     const variante = varianteFixa ?? (variantes ? variantes[variacaoAtiva() ?? ""] : undefined)
-    const teste = !!variante && modoTeste()
+    // ?tde_teste=1 vale também na página principal (eventos de teste na Meta, lead no lançamento de teste, sem planilha/Make)
+    const teste = modoTeste()
     const assignedThankYouPage = variante ? graciasDaPessoa() : getThankYouPath(cleanPhone)
     const landingOrigin = variante?.landing ?? (window.location.pathname || "/")
     const paginaCaptura = selectedCountry.name === "Uruguay" ? "Gen-Uruguay" : selectedCountry.name === "Argentina" ? "Gen-Argentina" : "Gen-Otro"
@@ -167,7 +168,8 @@ export function HeroSection({ safeMode = false, countryLanding = false, variante
       landing: landingOrigin,
       video: "Video1",  // Nombre de la variable de entorno
       pag_gracias: assignedThankYouPage,
-      ...(variante ? { teste, ...(teste ? { lancamento: LANCAMENTO_TESTE } : {}) } : {}),
+      teste,
+      ...(teste ? { lancamento: LANCAMENTO_TESTE } : {}),
     }
 
     // E-mail para a página de obrigado (Meta/painel) sem colocar na URL
