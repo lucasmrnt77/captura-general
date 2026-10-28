@@ -11,8 +11,9 @@ import { getDateAndTimeGMT3 } from "@/lib/date-utils"
 import { useDeferredGtm } from "@/components/jubilados/use-deferred-gtm"
 import LogoMarquee from "@/components/jubilados/logo-marquee"
 
+// 28/10/2026: todos os leads de dezembro vão para a mesma gracias (/gracias-v1: uma pergunta por vez)
 function getThankYouPath(_phone: string): string {
-  return "/gracias-video4"
+  return "/gracias-v1"
 }
 
 const Calendar = ({ className }: { className?: string }) => (

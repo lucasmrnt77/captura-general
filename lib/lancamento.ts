@@ -18,9 +18,10 @@ export type OpcaoPeso = { path: string; peso: number }
 
 /** Pesos das páginas de gracias (somam 100). Para tirar uma do teste, peso 0. */
 export const GRACIAS_TESTE: OpcaoPeso[] = [
-  { path: "/gracias-v1", peso: 34 },
-  { path: "/gracias-v2", peso: 33 },
-  { path: "/gracias-v3", peso: 33 },
+  // 28/10/2026: teste das gracias encerrado — todos vão para a /gracias-v1 (uma pergunta por vez)
+  { path: "/gracias-v1", peso: 100 },
+  { path: "/gracias-v2", peso: 0 },
+  { path: "/gracias-v3", peso: 0 },
 ]
 
 /** Sorteio pelo peso. `r` entre 0 e 1 (parâmetro só para os testes). */

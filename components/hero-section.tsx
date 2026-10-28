@@ -16,8 +16,9 @@ import { VARIANTES_INTL } from "@/lib/variantes-intl"
 import { variacaoAtiva } from "@/lib/variacao-ativa"
 import type { ReactNode } from "react"
 
+// 28/10/2026: todos os leads de dezembro vão para a mesma gracias (/gracias-v1: uma pergunta por vez)
 function getThankYouPath(_phone: string): string {
-  return "/gracias-video4"
+  return "/gracias-v1"
 }
 
 const Calendar = ({ className }: { className?: string }) => (
