@@ -38,7 +38,11 @@ const nextConfig = {
       },
     ]
     return {
-      beforeFiles: [...geo('/', '/intl'), ...geo('/v1', '/v1-intl'), ...geo('/v2', '/v2-intl'), ...geo('/v3', '/v3-intl'), ...geo('/v4', '/v4-intl')],
+      // Argentina (28/10/2026): "/" vira a /ar, que sorteia com os pesos da Argentina (lib/divisao.ts → porPais.AR)
+      beforeFiles: [
+        { source: '/', has: [{ type: 'query', key: 'pais', value: '(?:AR|ar)' }], destination: '/ar' },
+        { source: '/', missing: [{ type: 'query', key: 'pais' }], has: [{ type: 'header', key: 'x-vercel-ip-country', value: 'AR' }], destination: '/ar' },
+        ...geo('/', '/intl'), ...geo('/v1', '/v1-intl'), ...geo('/v2', '/v2-intl'), ...geo('/v3', '/v3-intl'), ...geo('/v4', '/v4-intl')],
     }
   },
 }

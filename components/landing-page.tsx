@@ -15,10 +15,10 @@ import { Sorteio } from "@/components/lancamento/sorteio"
  * variantes (link único "/" e "/intl"): a página traz o texto de todas as variações e o script do sorteio
  * escolhe uma no navegador (lib/sorteio.ts). Sem servidor no caminho: a página fica em cache como a /v1.
  */
-export function LandingPage({ safeMode, classTwoImage, countryLanding = false, variante, variantes, landingVisita }: { safeMode: boolean; classTwoImage?: string; countryLanding?: boolean; variante?: VarianteCaptura; variantes?: Record<string, VarianteCaptura>; landingVisita?: string }) {
+export function LandingPage({ safeMode, classTwoImage, countryLanding = false, variante, variantes, landingVisita, pais = null }: { safeMode: boolean; classTwoImage?: string; countryLanding?: boolean; variante?: VarianteCaptura; variantes?: Record<string, VarianteCaptura>; landingVisita?: string; pais?: string | null }) {
   return (
     <main className="min-h-screen bg-black">
-      {variantes && <Sorteio />}
+      {variantes && <Sorteio pais={pais} />}
       {landingVisita && <Visita landing={variantes ? "auto" : landingVisita} />}
       <HeroSection safeMode={safeMode} countryLanding={countryLanding} variante={variante} variantes={variantes} />
       {!safeMode && countryLanding && <PainPoints safeMode={safeMode} countryLanding={true} />}

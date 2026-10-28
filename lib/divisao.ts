@@ -36,14 +36,22 @@ export type TesteDivisao = {
   nome: string
   /** AAAA-MM-DD, horário do Uruguai */
   inicio: string
-  /** caminho → peso (proporção). Ex.: { "/v1": 34, "/v2": 33, "/v3": 33 } */
+  /** caminho → peso (proporção). Ex.: { "/v1": 34, "/v2": 33, "/v3": 33 }. Vale para quem não tem país em porPais. */
   variacoes: Record<string, number>
+  /**
+   * Pesos próprios por país (28/10/2026). Hoje só a Argentina tem página própria: "/" de quem é da
+   * Argentina é servida pela /ar (rewrite no next.config.mjs), que roda o sorteio com estes pesos.
+   * Uruguai, Chile e o resto usam `variacoes`.
+   */
+  porPais?: Record<string, Record<string, number>>
 }
 
 export const TESTES_DIVISAO: TesteDivisao[] = [
   // Teste 1 do Emi, headlines oficiais (A=/v1, B=/v2, C=/v3, D=/v4), a partir de hoje.
   // Nome novo = sorteio novo para todo mundo (quem já tinha caído nos textos provisórios é sorteado de novo).
   { nome: "Teste 1 · Headline oficial", inicio: "2026-10-26", variacoes: { "/v1": 25, "/v2": 25, "/v3": 25, "/v4": 25 } },
+  // 28/10/2026 (Emi): General — Argentina: teste /v1 × /v2 (50/50); Uruguai e demais: /v1 fixa (vencedora)
+  { nome: "Teste 2 · Argentina", inicio: "2026-10-28", variacoes: { "/v1": 100 }, porPais: { AR: { "/v1": 50, "/v2": 50 } } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
@@ -64,10 +72,16 @@ function normalizar(caminho: string): string {
   return c
 }
 
+/** Pesos do país (porPais) ou os gerais (variacoes). */
+export function pesosDoPais(t: TesteDivisao, pais?: string | null): Record<string, number> {
+  const k = (pais ?? "").toUpperCase()
+  return (k && t.porPais?.[k]) || t.variacoes
+}
+
 /** Pesos válidos do teste: só variações existentes e com peso > 0. */
-export function pesosValidos(t: TesteDivisao, existentes: string[] = VARIACOES_EXISTENTES): [string, number][] {
+export function pesosValidos(t: TesteDivisao, existentes: string[] = VARIACOES_EXISTENTES, pais?: string | null): [string, number][] {
   const ok = new Set(existentes.map(normalizar))
-  return Object.entries(t.variacoes)
+  return Object.entries(pesosDoPais(t, pais))
     .map(([c, p]) => [normalizar(c), Number(p)] as [string, number])
     .filter(([c, p]) => ok.has(c) && Number.isFinite(p) && p > 0)
 }
@@ -125,6 +139,7 @@ export function escolherVariacao(o: {
   r: number
   testes?: TesteDivisao[]
   existentes?: string[]
+  pais?: string | null
 }): Escolha | null {
   const existentes = o.existentes ?? VARIACOES_EXISTENTES
   if (o.forcada) {
@@ -134,8 +149,8 @@ export function escolherVariacao(o: {
   const simulando = !!o.previa && DIA.test(o.previa)
   const t = testeAtivo(simulando ? o.previa! : o.dia, o.testes ?? TESTES_DIVISAO, existentes)
   if (!t) return null
-  const pesos = pesosValidos(t, existentes)
-  const k = chaveTeste(t)
+  const pesos = pesosValidos(t, existentes, o.pais)
+  const k = chaveTeste(t) + (o.pais && t.porPais?.[o.pais.toUpperCase()] ? `~${o.pais.toUpperCase()}` : "")
   const salvo = lerCookie(o.cookie)
   if (!simulando && salvo && salvo.teste === k && pesos.some(([c]) => c === salvo.caminho)) {
     return { caminho: salvo.caminho, teste: t.nome, cookie: null }
