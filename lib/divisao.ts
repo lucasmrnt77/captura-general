@@ -13,6 +13,10 @@
  *  2. Faça o push. Pode deixar o próximo teste já agendado com antecedência.
  *  3. No painel (aba Páginas → Testes das páginas), crie o teste com o mesmo nome, as mesmas
  *     páginas e o período: os dados de cada teste ficam separados pelas datas.
+ *  REGRA (28/10/2026): nenhum teste pode sobrepor outro. Agende o teste novo para começar num dia
+ *  DEPOIS do push (vale a partir de 00:00 do Uruguai) e, no painel, termine o anterior na véspera e
+ *  comece o novo nesse dia: nenhum dia em comum, nem o da troca. Se a troca acontecer no meio do dia,
+ *  esse dia não entra em nenhum dos dois testes no painel.
  *  Variação "/" = a página principal (controle). Peso 0 = fora do teste.
  *  Variação que não existe neste projeto (VARIACOES_EXISTENTES) é ignorada, nunca vira 404.
  *
