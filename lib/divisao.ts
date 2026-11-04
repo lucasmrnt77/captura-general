@@ -56,6 +56,8 @@ export const TESTES_DIVISAO: TesteDivisao[] = [
   { nome: "Teste 1 · Headline oficial", inicio: "2026-10-26", variacoes: { "/v1": 25, "/v2": 25, "/v3": 25, "/v4": 25 } },
   // 28/10/2026 (Emi): General — Argentina: teste /v1 × /v2 (50/50); Uruguai e demais: /v1 fixa (vencedora)
   { nome: "Teste 2 · Argentina", inicio: "2026-10-28", variacoes: { "/v1": 100 }, porPais: { AR: { "/v1": 50, "/v2": 50 } } },
+  // 04/11/2026: fim do teste 2 — Argentina: /v2 fixa (vencedora); Uruguai e demais: /v1 fixa (como estava)
+  { nome: "Vencedoras fixas · AR v2", inicio: "2026-11-05", variacoes: { "/v1": 100 }, porPais: { AR: { "/v2": 100 } } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
