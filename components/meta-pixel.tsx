@@ -4,7 +4,7 @@
  * Só nas páginas de captura; as gracias usam o t.js do serviço de tracking.
  */
 const PIXEL_ID = "1380310740734731"
-const LANDING_PATHS = ["/", "/pag1", "/pag2", "/pag3", "/Prueba1", "/Prueba2", "/Prueba3", "/Prueba4", "/v1", "/v2", "/v3", "/v4", "/intl"]
+const LANDING_PATHS = ["/", "/pag1", "/pag2", "/pag3", "/Prueba1", "/Prueba2", "/Prueba3", "/Prueba4", "/v1", "/v2", "/v3", "/v4", "/v5", "/intl"]
 
 // PageView só 1 vez por página: o GTM também manda um PageView (tag "trackSingle PageView") quando carrega,
 // o que duplicava o evento no envio do formulário. O fbq abaixo ignora o 2º PageView do mesmo endereço.

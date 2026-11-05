@@ -58,13 +58,14 @@ export const TESTES_DIVISAO: TesteDivisao[] = [
   { nome: "Teste 2 · Argentina", inicio: "2026-10-28", variacoes: { "/v1": 100 }, porPais: { AR: { "/v1": 50, "/v2": 50 } } },
   // 04/11/2026: fim do teste 2 — Argentina: /v2 fixa (vencedora); Uruguai e demais: /v1 fixa (como estava)
   { nome: "Vencedoras fixas · AR v2", inicio: "2026-11-05", variacoes: { "/v1": 100 }, porPais: { AR: { "/v2": 100 } } },
-  // 05/11/2026 (Emi): Uruguai (e demais não-AR) — "/" original ("sin dejar tu trabajo") × /v1 ("capital bajo"), 50/50.
-  // Argentina continua com /v2 fixa.
-  { nome: "Teste 3 · Uruguai / x v1", inicio: "2026-11-06", variacoes: { "/": 50, "/v1": 50 }, porPais: { AR: { "/v2": 100 } } },
+  // 05/11/2026 (Emi): Uruguai (e demais não-AR) — 3 variações em partes iguais:
+  //   "/" original ("Aprendé…" + "sin dejar tu trabajo") × /v1 ("Aprendé…" + "capital bajo") × /v5 ("Descubrí…" + "gratis, desde cero").
+  // Argentina continua com /v2 fixa. (Ainda não tinha começado quando ganhou a /v5: começa 06/11 já com as 3.)
+  { nome: "Teste 3 · Uruguai / x v1 x v5", inicio: "2026-11-06", variacoes: { "/": 34, "/v1": 33, "/v5": 33 }, porPais: { AR: { "/v2": 100 } } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
-export const VARIACOES_EXISTENTES = ["/", "/v1", "/v2", "/v3", "/v4"]
+export const VARIACOES_EXISTENTES = ["/", "/v1", "/v2", "/v3", "/v4", "/v5"]
 
 export const COOKIE_DIVISAO = "tde_div"
 export const DURACAO_COOKIE = 60 * 60 * 24 * 30

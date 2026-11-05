@@ -75,6 +75,7 @@ export function avisarVisita(landing: string) {
   if (vid) corpo.visita = vid
   const campanha = campanhaDaUrl()
   if (campanha) corpo.campanha = campanha
+  if (vid && !modoTeste()) acompanharVisita(vid)
   if (modoTeste()) corpo.lancamento = LANCAMENTO_TESTE
   try {
     // text/plain + no-cors: o navegador não precisa de pré-verificação (CORS) e a página não espera
@@ -117,4 +118,53 @@ function campanhaDaUrl(): string | null {
   } catch {
     return null
   }
+}
+
+/**
+ * Comportamento na página (06/11/2026): quando a pessoa sai ou troca de aba, avisa o painel quanto tempo ficou
+ * com a aba visível, até onde rolou, se tocou no formulário e quanto a página levou para abrir.
+ * Separa "headline não prende" (sai em menos de 5 s) de "página não convence" e de "formulário trava".
+ * sendBeacon: não atrasa a saída nem a página. Nunca lança erro.
+ */
+function acompanharVisita(vid: string) {
+  try {
+    let visivelMs = 0
+    let desde = document.visibilityState === "visible" ? performance.now() : -1
+    let rolagem = 0
+    let formulario = false
+    const medirRolagem = () => {
+      const alto = document.documentElement.scrollHeight - window.innerHeight
+      const p = alto > 0 ? Math.round((100 * window.scrollY) / alto) : 100
+      if (p > rolagem) rolagem = Math.min(p, 100)
+    }
+    const carregamento = () => {
+      const n = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined
+      const v = n ? Math.round(n.domContentLoadedEventEnd || n.responseEnd) : 0
+      return v > 0 ? v : null
+    }
+    const enviar = () => {
+      if (desde >= 0) {
+        visivelMs += performance.now() - desde
+        desde = -1
+      }
+      const corpo = JSON.stringify({ visita: vid, segundos: Math.round(visivelMs / 1000), rolagem, formulario, carregamento: carregamento() })
+      try {
+        if (!navigator.sendBeacon?.(`${PAINEL_URL}/api/visita/tempo`, new Blob([corpo], { type: "text/plain" }))) {
+          void fetch(`${PAINEL_URL}/api/visita/tempo`, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: corpo }).catch(() => {})
+        }
+      } catch {}
+    }
+    window.addEventListener("scroll", medirRolagem, { passive: true })
+    document.addEventListener("focusin", (e) => {
+      const el = e.target as HTMLElement | null
+      if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) formulario = true
+    })
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") enviar()
+      else desde = performance.now()
+    })
+    window.addEventListener("pagehide", () => {
+      if (desde >= 0) enviar()
+    })
+  } catch {}
 }

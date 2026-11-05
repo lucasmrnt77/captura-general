@@ -24,7 +24,7 @@ const SUBPROMESA = (
 )
 const BOTAO = "QUIERO REGISTRARME GRATIS"
 
-export const VARIANTES: Record<"v1" | "v2" | "v3" | "v4", VarianteCaptura> = {
+export const VARIANTES: Record<"v1" | "v2" | "v3" | "v4" | "v5", VarianteCaptura> = {
   // A
   v1: {
     landing: "/v1",
@@ -86,6 +86,27 @@ export const VARIANTES: Record<"v1" | "v2" | "v3" | "v4", VarianteCaptura> = {
       </>
     ),
     subtitulo: SUBPROMESA,
+    botao: BOTAO,
+  },
+  // E (05/11/2026, teste do Uruguai): "Descubrí" no lugar de "Aprendé" + subpromessa própria (grátis, do zero, passo a passo)
+  v5: {
+    landing: "/v5",
+    titulo: (
+      <>
+        {"Descubrí cómo invertir en los "}
+        <span className={branco}>mercados financieros</span>
+        {" para generar "}
+        <span className={branco}>ingresos extra</span>
+        {" de "}
+        <span className={verde}>500 a 2.000 dólares al mes</span>
+      </>
+    ),
+    subtitulo: (
+      <>
+        <strong className={branco}>Gratis</strong>{", "}<strong className={branco}>desde cero</strong>{" y "}
+        <strong className={branco}>paso a paso</strong>{", aunque nunca hayas invertido."}
+      </>
+    ),
     botao: BOTAO,
   },
 }
