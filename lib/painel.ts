@@ -9,7 +9,15 @@ const vazio = (v: unknown, ...ignorar: string[]) => {
   return t && !ignorar.includes(t) ? t : null
 }
 
-export async function enviarParaPainel(body: Record<string, unknown>) {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Código da visita (cookie tde_vid gravado ao abrir a landing): liga a inscrição à visita no painel (06/11/2026). */
+export function visitaDaRequisicao(req: Request): string | null {
+  const m = /(?:^|;\s*)tde_vid=([^;]+)/.exec(req.headers.get("cookie") ?? "")
+  return m && UUID.test(m[1]) ? m[1] : null
+}
+
+export async function enviarParaPainel(body: Record<string, unknown>, visitaId: string | null = null) {
   const url = process.env.PAINEL_CAPTURA_URL
   const token = process.env.PAINEL_CAPTURA_TOKEN
   if (!url || !token || !body?.telefono) return
@@ -30,6 +38,7 @@ export async function enviarParaPainel(body: Record<string, unknown>) {
         utm_source: vazio(body.utm_source),
         utm_medium: vazio(body.utm_medium),
         utm_term: vazio(body.utm_term),
+        ...(visitaId && UUID.test(visitaId) ? { visita_id: visitaId } : {}), // medição precisa por visita
       }),
       signal: AbortSignal.timeout(5000),
     })

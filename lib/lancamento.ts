@@ -71,6 +71,10 @@ export function avisarVisita(landing: string) {
     sessionStorage.setItem(chave, "1")
   } catch {}
   const corpo: Record<string, string> = { landing }
+  const vid = novaVisita()
+  if (vid) corpo.visita = vid
+  const campanha = campanhaDaUrl()
+  if (campanha) corpo.campanha = campanha
   if (modoTeste()) corpo.lancamento = LANCAMENTO_TESTE
   try {
     // text/plain + no-cors: o navegador não precisa de pré-verificação (CORS) e a página não espera
@@ -82,4 +86,35 @@ export function avisarVisita(landing: string) {
       body: JSON.stringify(corpo),
     }).catch(() => {})
   } catch {}
+}
+
+/**
+ * Medição precisa (06/11/2026): cada visita ganha um código, enviado ao painel junto com a visita e gravado
+ * no cookie tde_vid; a inscrição feita depois leva o mesmo código (lib/painel.ts). Assim a conversão é
+ * medida pessoa a pessoa, com o país, a página e a campanha da própria visita.
+ */
+export const COOKIE_VISITA = "tde_vid"
+
+function novaVisita(): string | null {
+  try {
+    const id =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+            (Number(c) ^ ((Math.random() * 16) >> (Number(c) / 4))).toString(16),
+          )
+    document.cookie = `${COOKIE_VISITA}=${id}; path=/; max-age=86400; SameSite=Lax; Secure`
+    return id
+  } catch {
+    return null
+  }
+}
+
+function campanhaDaUrl(): string | null {
+  try {
+    const c = new URLSearchParams(window.location.search).get("utm_campaign")
+    return c ? c.slice(0, 200) : null
+  } catch {
+    return null
+  }
 }

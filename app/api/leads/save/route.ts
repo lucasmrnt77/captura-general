@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveLead } from '@/lib/db'
-import { enviarParaPainel } from '@/lib/painel'
+import { enviarParaPainel, visitaDaRequisicao } from '@/lib/painel'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,10 +9,10 @@ export async function POST(request: NextRequest) {
     // Painel Sendflow em paralelo, independente das outras BDs
     // Teste (?tde_teste=1 nas páginas novas): só o painel, no lançamento de testes
     if (data?.teste === true) {
-      await enviarParaPainel(data)
+      await enviarParaPainel(data, visitaDaRequisicao(request))
       return NextResponse.json({ success: true, message: 'Teste: enviado só ao painel' })
     }
-    const [result] = await Promise.all([saveLead(data), enviarParaPainel(data)])
+    const [result] = await Promise.all([saveLead(data), enviarParaPainel(data, visitaDaRequisicao(request))])
 
     return NextResponse.json({
       success: result.success,
