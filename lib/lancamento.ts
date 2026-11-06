@@ -132,9 +132,17 @@ function acompanharVisita(vid: string) {
     let desde = document.visibilityState === "visible" ? performance.now() : -1
     let rolagem = 0
     let formulario = false
-    const medirRolagem = () => {
-      const alto = document.documentElement.scrollHeight - window.innerHeight
-      const p = alto > 0 ? Math.round((100 * window.scrollY) / alto) : 100
+    // Rolagem de qualquer formato de página: a janela ou um contêiner grande que role (06/11/2026)
+    const pctDe = (topo: number, total: number, visivel: number) => {
+      const alto = total - visivel
+      return alto > 0 ? Math.round((100 * topo) / alto) : 0
+    }
+    const medirRolagem = (e?: Event) => {
+      const doc = (document.scrollingElement || document.documentElement) as HTMLElement
+      const topo = Math.max(window.scrollY || 0, doc.scrollTop || 0, document.body?.scrollTop || 0)
+      let p = pctDe(topo, Math.max(doc.scrollHeight, document.body?.scrollHeight || 0), window.innerHeight)
+      const el = e?.target
+      if (el instanceof HTMLElement && el.clientHeight >= window.innerHeight * 0.5) p = Math.max(p, pctDe(el.scrollTop, el.scrollHeight, el.clientHeight))
       if (p > rolagem) rolagem = Math.min(p, 100)
     }
     const carregamento = () => {
@@ -147,6 +155,10 @@ function acompanharVisita(vid: string) {
         visivelMs += performance.now() - desde
         desde = -1
       }
+      medirRolagem()
+      enviarAgora()
+    }
+    function enviarAgora() {
       const corpo = JSON.stringify({ visita: vid, segundos: Math.round(visivelMs / 1000), rolagem, formulario, carregamento: carregamento() })
       try {
         if (!navigator.sendBeacon?.(`${PAINEL_URL}/api/visita/tempo`, new Blob([corpo], { type: "text/plain" }))) {
@@ -154,7 +166,17 @@ function acompanharVisita(vid: string) {
         }
       } catch {}
     }
-    window.addEventListener("scroll", medirRolagem, { passive: true })
+    document.addEventListener("scroll", medirRolagem, { passive: true, capture: true })
+    // Garantia: manda também com 5 s, 15 s e 60 s de página aberta (alguns navegadores de app fecham sem avisar)
+    for (const s of [5, 15, 60]) {
+      window.setTimeout(() => {
+        if (document.visibilityState !== "visible" || desde < 0) return
+        visivelMs += performance.now() - desde
+        desde = performance.now()
+        medirRolagem()
+        enviarAgora()
+      }, s * 1000)
+    }
     document.addEventListener("focusin", (e) => {
       const el = e.target as HTMLElement | null
       if (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) formulario = true
