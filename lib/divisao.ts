@@ -62,6 +62,9 @@ export const TESTES_DIVISAO: TesteDivisao[] = [
   //   "/" original ("Aprendé…" + "sin dejar tu trabajo") × /v1 ("Aprendé…" + "capital bajo") × /v5 ("Descubrí…" + "gratis, desde cero").
   // Argentina continua com /v2 fixa. (Ainda não tinha começado quando ganhou a /v5: começa 06/11 já com as 3.)
   { nome: "Teste 3 · Uruguai / x v1 x v5", inicio: "2026-11-06", variacoes: { "/": 34, "/v1": 33, "/v5": 33 }, porPais: { AR: { "/v2": 100 } } },
+  // 09/11/2026: fim do Teste 3 — Uruguai (e demais não-AR): "/" principal fixa ("sin dejar tu trabajo").
+  // Argentina e Chile: /v2 fixa (o Chile usa a /ar desde 09/11 — next.config.mjs).
+  { nome: "Fixas · UY principal, AR/CL v2", inicio: "2026-11-10", variacoes: { "/": 100 }, porPais: { AR: { "/v2": 100 } } },
 ]
 
 /** Variações que existem neste projeto (cada uma com a sua versão -intl). Página nova (/v4…) entra aqui. */
