@@ -7,7 +7,7 @@ export default function ClientGraciasPage() {
   const router = useRouter()
   const whatsappGroupLink = "https://links.traderdelite.net/geral"
   const supportLink =
-    "https://wa.me/59899860812?text=Hola%2C%20estoy%20teniendo%20problemas%20para%20acceder%20al%20evento%"
+    "https://wa.me/59892897262?text=Hola%2C%20estoy%20teniendo%20problemas%20para%20acceder%20al%20evento%"
 
   useEffect(() => {
     router.replace("/gracias-video")
