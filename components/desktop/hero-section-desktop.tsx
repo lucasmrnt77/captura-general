@@ -273,14 +273,26 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
         <div className="text-base md:text-lg font-bold tracking-wide px-4">ENTRENAMIENTO GRATUITO Y ONLINE</div>
       </div>
 
-      {/* Desktop (12/11/2026): logo "La Semana del Inversionista" acima da headline, foto do Martín num card à direita, tudo na
-          primeira tela. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
+      {/* Desktop (12/11/2026): logo "La Semana del Inversionista" acima da headline e, de fundo, o Martín com o gráfico
+          (martin-fundo.webp, PNG sem fundo) à direita. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
       <div className="relative overflow-hidden bg-black">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden aspect-[1672/941] h-full lg:block 2xl:right-[calc((100%-1440px)/2)]">
+          <Image
+            src="/images/martin-fundo.webp"
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            sizes="(min-width: 1024px) 75vw, 1px"
+            className="object-contain object-right-bottom"
+          />
+        </div>
+        {/* Sombra à esquerda: o texto fica legível por cima do brilho verde da imagem */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_40%,rgba(0,208,132,0.16),transparent_60%)]"
+          className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,#000_0%,#000_38%,rgba(0,0,0,0.55)_55%,transparent_70%)] lg:block"
         />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 pb-10 pt-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)] lg:gap-14 lg:px-10 lg:py-12 xl:gap-20 xl:py-14">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 pb-10 pt-6 lg:min-h-[600px] lg:grid-cols-[minmax(0,640px)_1fr] lg:px-10 lg:py-14 xl:min-h-[680px] xl:py-16">
           <div className="order-2 text-center lg:order-1 lg:text-left">
             <Image
               src="/images/logo-semana.png"
@@ -380,18 +392,6 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
                 fetchPriority="high"
                 sizes="100vw"
                 className="block h-auto w-full"
-              />
-            </div>
-            {/* Desktop: só o Martín, num card vertical */}
-            <div className="mx-auto hidden w-full max-w-[360px] overflow-hidden rounded-[28px] border border-[#00D084]/40 bg-[#0d0d0d] p-2 shadow-[0_0_70px_rgba(0,208,132,0.22)] lg:ml-auto lg:mr-0 lg:block xl:max-w-[420px]">
-              <Image
-                src="/images/martin-hero.jpg"
-                alt="Martín Morales"
-                width={288}
-                height={540}
-                priority
-                sizes="420px"
-                className="block aspect-[4/5] w-full rounded-[22px] object-cover object-top"
               />
             </div>
           </div>
