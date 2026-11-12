@@ -274,11 +274,11 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
       </div>
 
       {/* Desktop (12/11/2026): logo "La Semana del Inversionista" acima da headline e, de fundo, o Martín com o gráfico
-          (martin-fundo.webp, PNG sem fundo) à direita. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
+          (martin-fundo-2.webp, PNG sem fundo — trocada em 12/11) à direita. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
       <div className="relative overflow-hidden bg-black">
         <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden aspect-[1672/941] h-full lg:block 2xl:right-[calc((100%-1440px)/2)]">
           <Image
-            src="/images/martin-fundo.webp"
+            src="/images/martin-fundo-2.webp"
             alt=""
             fill
             priority
