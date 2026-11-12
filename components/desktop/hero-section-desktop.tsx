@@ -1,0 +1,533 @@
+"use client"
+
+// Cópia da components/hero-section.tsx com o topo pensado para desktop (página /desktop). A lógica do formulário é a mesma.
+
+import { telefoneComPais } from "@/lib/telefone-pais"
+import type React from "react"
+import Image from "next/image"
+import { ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react"
+import { emailValido, salvarLeadSessao } from "@/lib/lead-sessao"
+import { getDateAndTimeGMT3 } from "@/lib/date-utils"
+import { GeoLogoMarquee } from "@/components/geo-logo-marquee"
+import { graciasDaPessoa, modoTeste, LANCAMENTO_TESTE } from "@/lib/lancamento"
+import type { VarianteCaptura } from "@/lib/variantes"
+import { VARIANTES_INTL } from "@/lib/variantes-intl"
+import { variacaoAtiva } from "@/lib/variacao-ativa"
+import type { ReactNode } from "react"
+
+// 28/10/2026: todos os leads de dezembro vão para a mesma gracias (/gracias-v1: uma pergunta por vez)
+function getThankYouPath(_phone: string): string {
+  return "/gracias-v1"
+}
+
+const Calendar = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}></rect>
+    <line x1="16" y1="2" x2="16" y2="6" strokeWidth={2}></line>
+    <line x1="8" y1="2" x2="8" y2="6" strokeWidth={2}></line>
+    <line x1="3" y1="10" x2="21" y2="10" strokeWidth={2}></line>
+  </svg>
+)
+
+const AlertCircle = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" strokeWidth={2}></circle>
+    <line x1="12" y1="8" x2="12" y2="12" strokeWidth={2}></line>
+    <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth={2}></line>
+  </svg>
+)
+
+const Clock = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" strokeWidth={2}></circle>
+    <polyline points="12 6 12 12 16 14" strokeWidth={2}></polyline>
+  </svg>
+)
+
+const countries = [
+  { code: "UY", name: "Uruguay", dial: "+598", flag: "\u{1F1FA}\u{1F1FE}", placeholder: "99 123 456" },
+  { code: "AR", name: "Argentina", dial: "+54", flag: "\u{1F1E6}\u{1F1F7}", placeholder: "11 2345 6789" },
+  { code: "BR", name: "Brasil", dial: "+55", flag: "\u{1F1E7}\u{1F1F7}", placeholder: "11 98765 4321" },
+  { code: "CL", name: "Chile", dial: "+56", flag: "\u{1F1E8}\u{1F1F1}", placeholder: "9 8765 4321" },
+  { code: "PY", name: "Paraguay", dial: "+595", flag: "\u{1F1F5}\u{1F1FE}", placeholder: "981 234567" },
+  { code: "MX", name: "M\u00e9xico", dial: "+52", flag: "\u{1F1F2}\u{1F1FD}", placeholder: "55 1234 5678" },
+  { code: "CO", name: "Colombia", dial: "+57", flag: "\u{1F1E8}\u{1F1F4}", placeholder: "300 123 4567" },
+  { code: "PE", name: "Per\u00fa", dial: "+51", flag: "\u{1F1F5}\u{1F1EA}", placeholder: "987 654 321" },
+  { code: "EC", name: "Ecuador", dial: "+593", flag: "\u{1F1EA}\u{1F1E8}", placeholder: "99 123 4567" },
+  { code: "VE", name: "Venezuela", dial: "+58", flag: "\u{1F1FB}\u{1F1EA}", placeholder: "412 123 4567" },
+  { code: "US", name: "Estados Unidos", dial: "+1", flag: "\u{1F1FA}\u{1F1F8}", placeholder: "202 555 0123" },
+  { code: "ES", name: "Espa\u00f1a", dial: "+34", flag: "\u{1F1EA}\u{1F1F8}", placeholder: "612 34 56 78" },
+]
+
+function formatPhoneNumber(phone: string, countryCode: string): string {
+  // Regras do normalizar.ts (Argentina 549, Uruguay sem 0, EEUU 1, etc.) — iguais em todas as páginas
+  const pais = countries.find((c) => c.code === countryCode)
+  return telefoneComPais(phone, { nome: pais?.name ?? "", ddi: pais?.dial ?? "" })
+}
+
+export function HeroSectionDesktop({ safeMode = false, countryLanding = false, variante: varianteFixa, variantes }: { safeMode?: boolean; countryLanding?: boolean; variante?: VarianteCaptura; variantes?: Record<string, VarianteCaptura> }) {
+  const [isVisible, setIsVisible] = useState(false)
+  const [phone, setPhone] = useState("")
+  const [phoneError, setPhoneError] = useState("")
+  const [email, setEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [selectedCountry, setSelectedCountry] = useState(countries[0])
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+  const [showPhoneModal, setShowPhoneModal] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+
+    fetch("/api/get-country")
+      .then((response) => response.json())
+      .then((data) => {
+        const detectedCountry = countries.find((c) => c.code === data.country)
+        if (detectedCountry) {
+          setSelectedCountry(detectedCountry)
+        }
+      })
+      .catch(() => {
+        // Mantiene Uruguay por defecto si falla
+      })
+
+  }, [])
+
+  useEffect(() => {
+    if (!showPhoneModal) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowPhoneModal(false)
+        setShowCountryDropdown(false)
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [showPhoneModal])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPhoneError("")
+
+    if (!phone) {
+      setPhoneError("Por favor, ingresa tu n\u00famero de WhatsApp")
+      return
+    }
+
+    const phoneRegex = /^\d{6,15}$/
+    if (!phoneRegex.test(phone.replace(/\s/g, ""))) {
+      setPhoneError("Por favor, ingresa un n\u00famero de tel\u00e9fono v\u00e1lido")
+      return
+    }
+
+    setEmailError("")
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail) {
+      setEmailError("Por favor, ingresa tu correo electr\u00f3nico")
+      return
+    }
+    if (!emailValido(cleanEmail)) {
+      setEmailError("Por favor, ingresa un correo electr\u00f3nico v\u00e1lido")
+      return
+    }
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const campaign = urlParams.get("utm_campaign") || "Directo"
+    const content = urlParams.get("utm_content") || "N/A"
+    const source = urlParams.get("utm_source") || ""
+    const medium = urlParams.get("utm_medium") || ""
+    const term = urlParams.get("utm_term") || ""
+
+    const { fecha, hora } = getDateAndTimeGMT3()
+
+    // Formatear telefono (eliminar 0 inicial para UY, solo numeros)
+    const cleanPhone = formatPhoneNumber(phone, selectedCountry.code)
+
+    // Páginas de teste (/v1–/v3 ou a variação sorteada no link único): gracias sorteada e landing da variação
+    const variante = varianteFixa ?? (variantes ? variantes[variacaoAtiva() ?? ""] : undefined)
+    // ?tde_teste=1 vale também na página principal (eventos de teste na Meta, lead no lançamento de teste, sem planilha/Make)
+    const teste = modoTeste()
+    const assignedThankYouPage = variante ? graciasDaPessoa() : getThankYouPath(cleanPhone)
+    const landingOrigin = variante?.landing ?? (window.location.pathname || "/")
+    const paginaCaptura = selectedCountry.name === "Uruguay" ? "Gen-Uruguay" : selectedCountry.name === "Argentina" ? "Gen-Argentina" : "Gen-Otro"
+
+    const data = {
+      action: "register",
+      fecha: fecha,
+      hora: hora,
+      telefono: cleanPhone,
+      email: cleanEmail,
+      pais: selectedCountry.name,
+      pagina_captura: paginaCaptura,
+      campana: campaign,
+      anuncio: content,
+      utm_source: source,
+      utm_medium: medium,
+      utm_term: term,
+      landing: landingOrigin,
+      video: "Video1",  // Nombre de la variable de entorno
+      pag_gracias: assignedThankYouPage,
+      teste,
+      ...(teste ? { lancamento: LANCAMENTO_TESTE } : {}),
+    }
+
+    // E-mail para a página de obrigado (Meta/painel) sem colocar na URL
+    salvarLeadSessao({ email: cleanEmail, telefono: cleanPhone })
+
+    try {
+      // Guardar directamente en Google Sheets (sin API intermedia)
+      // Igual a setembro: grava na hora na planilha do lançamento (modo teste não grava)
+      // Todas as páginas (principal e /v1–/v3) → planilha "Pagina de Captura General - Diciembre"
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbymozD8_L-O_XO986i4UQsmXbbeZeuNapyFNPiQ4MMMIeWeq9XZjzWnff1_KYDvO9Zm/exec"
+      
+      if (!teste) fetch(scriptUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        keepalive: true,
+      })
+        .catch(() => undefined)
+
+      // Guardar también en Supabase y Neon sin bloquear la navegación
+      fetch("/api/leads/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          fecha_hora: `${fecha} ${hora}`,
+        }),
+        keepalive: true,
+      }).catch(() => undefined)
+
+      // Enviar al webhook de Make.com
+      const webhookUrl = "https://hook.us2.make.com/l4frrrgfm8tenowm3vn1k65wnyof9fvz"
+      
+      const webhookData = {
+        telefono: data.telefono,
+        fecha: fecha,
+        hora: hora,
+      }
+
+      // Enviar webhook en paralelo sin bloquear (keepalive permite que continúe después de navegar)
+      // Em teste não dispara a automação do Make (mensagens reais)
+      if (!teste) fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(webhookData),
+        keepalive: true,
+      }).catch(() => undefined)
+
+      // Redirigir inmediatamente sin esperar
+      const params = new URLSearchParams()
+      params.set("tel", cleanPhone)
+      if (campaign !== "Directo") params.set("utm_campaign", campaign)
+      if (content !== "N/A") params.set("utm_content", content)
+      if (variante) params.set("country", selectedCountry.code)
+      if (teste) params.set("tde_teste", "1")
+
+      window.location.href = `${assignedThankYouPage}?${params.toString()}`
+    } catch {
+      // Continuar de todas formas
+      const params = new URLSearchParams()
+      params.set("tel", cleanPhone)
+      window.location.href = `${assignedThankYouPage}?${params.toString()}`
+    }
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    if (emailError) {
+      setEmailError("")
+    }
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^\d\s]/g, "")
+    setPhone(value)
+    if (phoneError) {
+      setPhoneError("")
+    }
+  }
+
+  // Testes (/v1, /v2…): AR/UY/CL usa lib/variantes.tsx (com promessa); o resto do mundo, lib/variantes-intl.tsx (sem promessa)
+  const copia = varianteFixa ? (safeMode ? VARIANTES_INTL[varianteFixa.landing.replace("/", "") as keyof typeof VARIANTES_INTL] : varianteFixa) : undefined
+  // Link único: o texto padrão + o de cada variação; o CSS mostra só a sorteada (html[data-v])
+  const multi = (padrao: ReactNode, campo: "titulo" | "subtitulo" | "botao") =>
+    variantes ? (
+      <>
+        <span data-var="principal">{padrao}</span>
+        {Object.entries(variantes).map(([k, v]) => <span key={k} data-var={k}>{v[campo]}</span>)}
+      </>
+    ) : (
+      padrao
+    )
+
+  return (
+    <section className="relative" data-hero-visita>
+      <div className="bg-[#00D084] text-white text-center py-4 md:py-6">
+        <div className="text-base md:text-lg font-bold tracking-wide px-4">ENTRENAMIENTO GRATUITO Y ONLINE</div>
+      </div>
+
+      {/* Desktop (12/11/2026): logo "La Semana del Inversionista" acima da headline, foto do Martín num card à direita, tudo na
+          primeira tela. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
+      <div className="relative overflow-hidden bg-black">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_75%_40%,rgba(0,208,132,0.16),transparent_60%)]"
+        />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 pb-10 pt-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)] lg:gap-14 lg:px-10 lg:py-12 xl:gap-20 xl:py-14">
+          <div className="order-2 text-center lg:order-1 lg:text-left">
+            <Image
+              src="/images/logo-semana.png"
+              alt="La Semana del Inversionista"
+              width={546}
+              height={150}
+              priority
+              sizes="380px"
+              className="mb-6 hidden h-auto w-[300px] lg:block xl:w-[370px]"
+            />
+            <h1 className="mb-5 font-poppins text-[22px] leading-tight text-white md:text-4xl lg:text-[40px] lg:leading-[1.15] xl:text-[46px]">
+            {multi(<>{copia ? (
+              copia.titulo
+            ) : safeMode ? (
+              <>
+                {"Aprend\u00e9 c\u00f3mo funcionan los "}
+                <span className="font-bold">{"mercados financieros"}</span>
+                {" en esta "}
+                <span className="font-bold text-[#00D084]">{"formaci\u00f3n gratuita"}</span>
+                {" desde cero"}
+              </>
+            ) : countryLanding ? (
+              <>
+                {"Aprendé a invertir en los "}
+                <span className="font-bold text-white">{"mercados financieros"}</span>
+                {" para generar "}
+                <span className="font-bold text-white">{"ingresos extra"}</span>
+                {" de "}
+                <span className="font-bold text-[#00D084]">{"500 a 2.000 dólares al mes"}</span>
+              </>
+            ) : (
+              <>
+                {"Aprendé "}
+                <span className="font-bold">{"la habilidad de invertir en los mercados financieros"}</span>
+                {" para generar "}
+                <span className="font-bold">{"ingresos extras"}</span>
+                {" de "}
+                <span className="font-bold text-[#00D084]">{"500 a 2.000 dólares"}</span>
+                {" al mes"}
+              </>
+            )}</>, "titulo")}
+            </h1>
+
+            <p className="mx-auto mb-8 max-w-xl font-poppins text-[12px] leading-relaxed text-white/90 md:text-base lg:mx-0 lg:text-lg">
+            {multi(<>{copia ? (
+              copia.subtitulo
+            ) : countryLanding ? (
+              <>
+                <strong>Sin experiencia previa</strong>{", "}<strong>sin dejar tu trabajo</strong>{" y "}<strong>adaptado a tu rutina</strong>{"."}
+              </>
+            ) : (
+              <>
+                {"Un paso a paso real y probado, incluso por personas "}
+                <strong>sin conocimientos previos y con poco tiempo.</strong>
+              </>
+            )}</>, "subtitulo")}
+            </p>
+
+            <div className={`mb-8 flex justify-center lg:justify-start ${isVisible ? "animate-fade-in-up" : "opacity-0"} delay-400`}>
+              <Button
+                id="main-cta-button"
+                size="lg"
+                className="pulse-green-button relative z-10 w-full max-w-md whitespace-nowrap px-4 py-6 text-sm font-bold md:px-10 md:py-8 md:text-xl"
+                onClick={() => {
+                  setPhoneError("")
+                  setShowPhoneModal(true)
+                }}
+              >
+                {multi(<>{copia ? copia.botao : countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}</>, "botao")}
+              </Button>
+            </div>
+
+            <div className={`flex flex-col items-center gap-3 text-white sm:flex-row sm:justify-center lg:justify-start ${isVisible ? "animate-fade-in-up" : "opacity-0"} delay-500`}>
+              <div className="flex items-center gap-3 rounded-full border-2 border-[#00D084] px-5 py-2">
+                <Calendar className="h-5 w-5 flex-shrink-0 text-[#00D084]" />
+                <span className="font-montserrat text-[13px] font-medium md:text-sm">7 al 10 de Diciembre</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-full border-2 border-[#00D084] px-5 py-2">
+                <Clock className="h-5 w-5 flex-shrink-0 text-[#00D084]" />
+                <div className="flex flex-col gap-0.5 text-left">
+                  <span className="font-montserrat text-[13px] font-medium leading-none md:text-sm">20:00 HS 🇺🇾 🇦🇷</span>
+                  <span className="font-montserrat text-[13px] font-medium leading-none md:text-sm">19:00 HS 🇨🇱 🇺🇸 Miami</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="order-1 lg:order-2">
+            {/* Celular: a arte completa */}
+            <div className="overflow-hidden rounded-2xl border border-[#00D084]/40 shadow-[0_0_60px_rgba(0,208,132,0.22)] lg:hidden">
+              <Image
+                src="/images/hero-cover.jpg"
+                alt="La Semana del Inversionista"
+                width={960}
+                height={540}
+                priority
+                fetchPriority="high"
+                sizes="100vw"
+                className="block h-auto w-full"
+              />
+            </div>
+            {/* Desktop: só o Martín, num card vertical */}
+            <div className="mx-auto hidden w-full max-w-[360px] overflow-hidden rounded-[28px] border border-[#00D084]/40 bg-[#0d0d0d] p-2 shadow-[0_0_70px_rgba(0,208,132,0.22)] lg:ml-auto lg:mr-0 lg:block xl:max-w-[420px]">
+              <Image
+                src="/images/martin-hero.jpg"
+                alt="Martín Morales"
+                width={288}
+                height={540}
+                priority
+                sizes="420px"
+                className="block aspect-[4/5] w-full rounded-[22px] object-cover object-top"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+          {showPhoneModal && (
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 py-6"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="phone-modal-title"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setShowPhoneModal(false)
+                  setShowCountryDropdown(false)
+                }
+              }}
+            >
+              <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-700 bg-[#171717] p-5 shadow-2xl md:p-7">
+                <button
+                  type="button"
+                  aria-label="Cerrar ventana"
+                  onClick={() => {
+                    setShowPhoneModal(false)
+                    setShowCountryDropdown(false)
+                  }}
+                  className="absolute right-4 top-3 text-3xl leading-none text-gray-400 transition-colors hover:text-white"
+                >
+                  ×
+                </button>
+
+                <form onSubmit={handleSubmit} noValidate className="pt-3">
+                  <h2 id="phone-modal-title" className="pr-8 text-center text-xl font-bold leading-tight text-white md:text-2xl">
+                    Asegurá tu lugar en el entrenamiento gratuito
+                  </h2>
+                  <p className="mt-3 text-center text-sm leading-relaxed text-gray-300 md:text-base">
+                    Ingresá tu WhatsApp y tu correo. Por WhatsApp enviaremos el acceso a las 4 clases y las novedades del evento.
+                  </p>
+
+                  <div className="mt-6">
+                    <label htmlFor="phone-number" className="sr-only">
+                      Número de WhatsApp
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative shrink-0">
+                        <button
+                          type="button"
+                          aria-label="Seleccionar país"
+                          aria-expanded={showCountryDropdown}
+                          onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                          className="flex h-[52px] items-center gap-2 rounded-lg border-2 border-gray-600 bg-[#2a2a2a] px-3 text-white transition-colors hover:border-[#00D084] md:px-4"
+                        >
+                          <span className="text-xl">{selectedCountry.flag}</span>
+                          <span className="text-base font-medium">{selectedCountry.dial}</span>
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                        {showCountryDropdown && (
+                          <div className="absolute left-0 top-full z-[110] mt-1 max-h-[40vh] min-w-[220px] overflow-y-auto rounded-lg border-2 border-gray-600 bg-[#2a2a2a] shadow-lg">
+                            {countries.map((country) => (
+                              <button
+                                key={country.code}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCountry(country)
+                                  setShowCountryDropdown(false)
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-2 text-left text-white transition-colors hover:bg-[#3a3a3a]"
+                              >
+                                <span className="text-xl">{country.flag}</span>
+                                <span className="flex-1 text-sm">{country.name}</span>
+                                <span className="text-sm text-gray-400">{country.dial}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Input
+                        id="phone-number"
+                        type="tel"
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        placeholder={selectedCountry.placeholder}
+                        autoFocus
+                        className={`h-[52px] min-w-0 flex-1 rounded-lg border-2 bg-[#2a2a2a] px-4 text-base text-white placeholder:text-gray-500 transition-colors ${
+                          phoneError ? "border-red-500 focus:border-red-500" : "border-gray-600 focus:border-[#00D084]"
+                        }`}
+                      />
+                    </div>
+                    {phoneError && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-[#00D084]" />
+                        <span>{phoneError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <label htmlFor="email" className="sr-only">
+                      Correo electrónico
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      value={email}
+                      onChange={handleEmailChange}
+                      placeholder="Tu correo electrónico"
+                      className={`h-[52px] w-full rounded-lg border-2 bg-[#2a2a2a] px-4 text-base text-white placeholder:text-gray-500 transition-colors ${
+                        emailError ? "border-red-500 focus:border-red-500" : "border-gray-600 focus:border-[#00D084]"
+                      }`}
+                    />
+                    {emailError && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-[#00D084]" />
+                        <span>{emailError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="mt-6 w-full px-4 py-6 text-sm font-bold pulse-green-button md:text-base"
+                  >
+                    ASEGURAR MI CUPO GRATIS
+                  </Button>
+                </form>
+              </div>
+            </div>
+          )}
+
+      {!safeMode && <GeoLogoMarquee />}
+    </section>
+  )
+}

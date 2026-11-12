@@ -192,3 +192,14 @@ html[data-v="v3"] [data-var="v3"],
 html[data-v="v4"] [data-var="v4"],
 html[data-v="v5"] [data-var="v5"],
 html[data-v="v6"] [data-var="v6"] { display: inline; }
+
+/* Página /desktop (12/11/2026): os botões das seções ficavam à esquerda no desktop; aqui ficam centralizados. */
+.pagina-desktop .text-center:has(> button) {
+  display: flex;
+  justify-content: center;
+}
+
+/* Página /desktop: a faixa "Hablan de nosotros" ganha respiro embaixo (no desktop os logos encostavam na seção seguinte). */
+.pagina-desktop section[aria-label="Hablan de nosotros"] {
+  padding-bottom: 24px;
+}
