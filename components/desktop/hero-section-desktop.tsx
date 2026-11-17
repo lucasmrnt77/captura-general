@@ -315,13 +315,14 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
                 {" desde cero"}
               </>
             ) : countryLanding ? (
+              // 17/11/2026: /desktop é usada nas operativas ao vivo do Martín (público que já opera) — headline própria
               <>
-                {"Aprendé a invertir en los "}
-                <span className="font-bold text-white">{"mercados financieros"}</span>
-                {" para generar "}
-                <span className="font-bold text-white">{"ingresos extra"}</span>
-                {" de "}
-                <span className="font-bold text-[#00D084]">{"500 a 2.000 dólares al mes"}</span>
+                {"Traders que llevaban "}
+                <span className="font-bold text-white">{"meses sin resultados"}</span>
+                {" descubrieron "}
+                <span className="font-bold text-white">{"el método"}</span>
+                {" con el que hoy generan "}
+                <span className="font-bold text-[#00D084]">{"entre 500 y 2.000 dólares al mes"}</span>
               </>
             ) : (
               <>
@@ -341,7 +342,7 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
               copia.subtitulo
             ) : countryLanding ? (
               <>
-                <strong>Sin experiencia previa</strong>{", "}<strong>sin dejar tu trabajo</strong>{" y "}<strong>adaptado a tu rutina</strong>{"."}
+                {"No es una señal, ni un robot, ni otra estrategia. Es un "}<strong>paso a paso probado</strong>{", para operar con criterio en "}<strong>60 a 90 minutos por día</strong>{"."}
               </>
             ) : (
               <>
@@ -361,7 +362,7 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
                   setShowPhoneModal(true)
                 }}
               >
-                {multi(<>{copia ? copia.botao : countryLanding ? "QUIERO REGISTRARME GRATIS" : "QUIERO MI CUPO GRATIS"}</>, "botao")}
+                {multi(<>{copia ? copia.botao : "QUIERO MI CUPO GRATIS"}</>, "botao")}
               </Button>
             </div>
 
