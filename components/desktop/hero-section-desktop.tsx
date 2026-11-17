@@ -274,7 +274,7 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
       </div>
 
       {/* Desktop (12/11/2026): logo "La Semana del Inversionista" acima da headline e, de fundo, o Martín com o gráfico
-          (martin-fundo-2.webp, PNG sem fundo — trocada em 12/11) à direita. No celular continua a arte completa (hero-cover) em cima e o texto embaixo. */}
+          (martin-fundo-2.webp, PNG sem fundo — trocada em 12/11) à direita. No celular, a mesma imagem recortada (martin-fundo-mobile.webp) com o logo por cima, e o texto embaixo. */}
       <div className="relative overflow-hidden bg-black">
         <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden aspect-[1672/941] h-full lg:block 2xl:right-[calc((100%-1440px)/2)]">
           <Image
@@ -382,17 +382,27 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
           </div>
 
           <div className="order-1 lg:order-2">
-            {/* Celular: a arte completa */}
-            <div className="overflow-hidden rounded-2xl border border-[#00D084]/40 shadow-[0_0_60px_rgba(0,208,132,0.22)] lg:hidden">
+            {/* Celular (17/11/2026): a mesma imagem do desktop, recortada no Martín (martin-fundo-mobile.webp, fundo preto),
+                de ponta a ponta, com o logo em cima à esquerda */}
+            <div className="relative -mx-5 -mt-6 lg:hidden">
               <Image
-                src="/images/hero-cover.jpg"
-                alt="La Semana del Inversionista"
-                width={960}
-                height={540}
+                src="/images/martin-fundo-mobile.webp"
+                alt="Martín, instructor de La Semana del Inversionista"
+                width={1080}
+                height={731}
                 priority
                 fetchPriority="high"
                 sizes="100vw"
                 className="block h-auto w-full"
+              />
+              <Image
+                src="/images/logo-semana.png"
+                alt="La Semana del Inversionista"
+                width={546}
+                height={150}
+                priority
+                sizes="50vw"
+                className="absolute left-4 top-3 h-auto w-[46%] max-w-[260px]"
               />
             </div>
           </div>
