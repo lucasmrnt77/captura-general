@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState, useEffect } from "react"
 import { emailValido, salvarLeadSessao } from "@/lib/lead-sessao"
+import { novoRedirId } from "@/lib/redir-id"
 import { getDateAndTimeGMT3 } from "@/lib/date-utils"
 import { GeoLogoMarquee } from "@/components/geo-logo-marquee"
 import { graciasDaPessoa, modoTeste, LANCAMENTO_TESTE } from "@/lib/lancamento"
@@ -155,6 +156,8 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
     const landingOrigin = variante?.landing ?? (window.location.pathname || "/")
     const paginaCaptura = selectedCountry.name === "Uruguay" ? "Gen-Uruguay" : selectedCountry.name === "Argentina" ? "Gen-Argentina" : "Gen-Otro"
 
+    // Código aleatório da inscrição → mesmo grupo sempre no redirecionador (sem dado pessoal na URL)
+    const redirId = novoRedirId()
     const data = {
       action: "register",
       fecha: fecha,
@@ -171,6 +174,7 @@ export function HeroSectionDesktop({ safeMode = false, countryLanding = false, v
       landing: landingOrigin,
       video: "Video1",  // Nombre de la variable de entorno
       pag_gracias: assignedThankYouPage,
+      redir_id: redirId,
       teste,
       ...(teste ? { lancamento: LANCAMENTO_TESTE } : {}),
     }

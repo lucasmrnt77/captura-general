@@ -31,6 +31,7 @@ export async function enviarParaPainel(body: Record<string, unknown>, visitaId: 
         email: vazio(body.email) ?? vazio(body.correo),
         pagina_captura: vazio(body.pagina_captura), // "Gen-Uruguay" etc. → painel classifica como Nunca operou
         pagina_gracias: vazio(body.pag_gracias),
+        ...(typeof body.redir_id === "string" && UUID.test(body.redir_id) ? { redir_id: body.redir_id.toLowerCase() } : {}), // mesmo grupo no redirecionador
         landing: vazio(body.landing), // endereço da página ("/", "/v1"…) → métricas por página
         lancamento: vazio(body.lancamento), // "teste-paginas" nos testes; vazio = lançamento ativo
         utm_campaign: vazio(body.campana, "Directo"),
