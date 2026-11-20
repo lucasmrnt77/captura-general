@@ -191,5 +191,5 @@ function acompanharVisita(vid: string) {
   } catch {}
 }
 
-/** Grupo de reserva fixo da General (#24, fora do redirecionador): botão abaixo de "Unirme al grupo" para quem teve erro ao entrar (20/11/2026). */
-export const LINK_GRUPO_RESERVA = "https://chat.whatsapp.com/FK9NB6CgJRY33VaZ9a2MZV"
+/** Botão "Entrar al grupo alternativo" (20/11/2026): funil próprio no redirecionador com 2 grupos de reserva (#24 e #26), alternando. */
+export const LINK_GRUPO_RESERVA = process.env.NEXT_PUBLIC_LINK_GRUPO_RESERVA || "https://links.traderdelite.net/geral-reserva"

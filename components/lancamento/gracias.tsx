@@ -285,6 +285,13 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
               href={LINK_GRUPO_RESERVA}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => {
+                // Mesmo código da inscrição do botão principal: a pessoa cai sempre no mesmo grupo de reserva
+                e.preventDefault()
+                const link = linkGrupoComId(LINK_GRUPO_RESERVA)
+                const aba = window.open(link, "_blank")
+                if (!aba) window.location.href = link
+              }}
               className="mt-3 flex min-h-[60px] w-full items-center justify-center rounded-full border border-zinc-400 bg-transparent px-8 py-4 text-center text-[13px] font-bold text-zinc-300 whitespace-nowrap transition-colors hover:border-zinc-200 hover:text-white"
             >
               ENTRAR AL GRUPO ALTERNATIVO
