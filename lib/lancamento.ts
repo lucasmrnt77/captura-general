@@ -190,3 +190,6 @@ function acompanharVisita(vid: string) {
     })
   } catch {}
 }
+
+/** Grupo de reserva fixo da General (#24, fora do redirecionador): botão abaixo de "Unirme al grupo" para quem teve erro ao entrar (20/11/2026). */
+export const LINK_GRUPO_RESERVA = "https://chat.whatsapp.com/FK9NB6CgJRY33VaZ9a2MZV"

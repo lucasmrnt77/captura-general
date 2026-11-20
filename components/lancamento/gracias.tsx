@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Script from "next/script"
 import { leadDaSessao } from "@/lib/lead-sessao"
 import { tde, comLimite, TRACKING_URL } from "@/lib/tracking"
-import { LINK_GRUPO_GERAL, LANCAMENTO_TESTE } from "@/lib/lancamento"
+import { LINK_GRUPO_GERAL, LINK_GRUPO_RESERVA, LANCAMENTO_TESTE } from "@/lib/lancamento"
 import { linkGrupoComId } from "@/lib/redir-id"
 
 /**
@@ -280,13 +280,14 @@ export function GraciasLancamento({ variante }: { variante: VarianteGracias }) {
               {enviado ? "PROCESANDO..." : t.botao}
             </button>
             {avisoTeste && <p role="status" data-teste-resultado className="mt-3 text-center text-sm text-amber-300">{avisoTeste}</p>}
+            <p className="mt-4 text-center text-sm text-zinc-300">Si tuviste algún problema para entrar al grupo, tocá el botón de abajo.</p>
             <a
-              href="https://wa.me/59892897262?text=Hola,%20estoy%20necesitando%20ayuda%20para%20registrarme%20al%20evento"
+              href={LINK_GRUPO_RESERVA}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 flex min-h-[60px] w-full items-center justify-center rounded-full border border-zinc-400 bg-transparent px-8 py-4 text-center text-[13px] font-bold text-zinc-300 whitespace-nowrap transition-colors hover:border-zinc-200 hover:text-white"
+              className="mt-3 flex min-h-[60px] w-full items-center justify-center rounded-full border border-zinc-400 bg-transparent px-8 py-4 text-center text-[13px] font-bold text-zinc-300 whitespace-nowrap transition-colors hover:border-zinc-200 hover:text-white"
             >
-              CONTACTAR A SOPORTE
+              ENTRAR AL GRUPO ALTERNATIVO
             </a>
           </>
         ) : null}
